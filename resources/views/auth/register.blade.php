@@ -44,9 +44,11 @@
                 {{ __('Already registered?') }}
             </a>
 
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
+            <div class="flex items-center justify-end mt-4">
+                <button type="submit" class="btn-primary-custom ml-4">
+                    Register
+                </button>
+            </div>
         </div>
     </form>
 </x-guest-layout>

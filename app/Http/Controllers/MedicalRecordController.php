@@ -29,5 +29,7 @@ class MedicalRecordController extends Controller
         return redirect()->route('doctor.medical_records.index')->with('success','Rekam medis disimpan');
     }
 
-    public function indexDoctor(){ $records = MedicalRecord::where('doctor_id',auth()->id())->with('appointment.patient')->get(); return view('doctor.medical_records.index', compact('records')); }
+    public function indexDoctor(){ $records = MedicalRecord::where('doctor_id',auth()->id())->with('appointment.patient')->get(); 
+        return view('doctor.medical_records.index', compact('records')); 
+    }
 }

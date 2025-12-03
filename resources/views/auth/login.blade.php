@@ -39,9 +39,11 @@
                 </a>
             @endif
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+            <div class="flex items-center justify-end mt-4">
+                <button type="submit" class="btn-primary-custom ml-4">
+                    Log in
+                </button>
+            </div>
         </div>
     </form>
 </x-guest-layout>

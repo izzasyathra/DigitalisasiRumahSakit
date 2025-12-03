@@ -44,10 +44,29 @@ class AppointmentController extends Controller
         return redirect()->route('patient.appointments')->with('success','Janji temu dibuat');
     }
 
-    public function indexAdmin(){ $appointments = Appointment::with('patient','doctor','schedule')->orderBy('booking_date')->get(); return view('admin.appointments.index', compact('appointments')); }
-    public function indexDoctor(){ $appointments = Appointment::where('doctor_id',auth()->id())->get(); return view('doctor.appointments.index', compact('appointments')); }
-    public function indexPatient(){ $appointments = Appointment::where('patient_id',auth()->id())->get(); return view('patient.appointments.index', compact('appointments')); }
+    public function indexAdmin()
+    { $appointments = Appointment::with('patient','doctor','schedule')->orderBy('booking_date')->get(); 
+        return view('admin.appointments.index', compact('appointments')); 
+    }
 
-    public function approve($id){ $a = Appointment::findOrFail($id); $a->status='Approved'; $a->save(); return back()->with('success','Approved'); }
-    public function reject(Request $r,$id){ $a = Appointment::findOrFail($id); $a->status='Rejected'; $a->reject_reason = $r->reason ?? 'Tidak disebutkan'; $a->save(); return back()->with('success','Rejected'); }
+    public function indexDoctor()
+    { $appointments = Appointment::where('doctor_id',auth()->id())->get(); 
+        return view('doctor.appointments.index', compact('appointments')); 
+    }
+
+    public function indexPatient()
+    { $appointments = Appointment::where('patient_id',auth()->id())->get(); 
+        return view('patient.appointments.index', compact('appointments')); 
+    }
+
+
+    public function approve($id)
+    { $a = Appointment::findOrFail($id); $a->status='Approved'; $a->save(); 
+        return back()->with('success','Approved'); 
+    }
+
+    public function reject(Request $r,$id)
+    { $a = Appointment::findOrFail($id); $a->status='Rejected'; $a->reject_reason = $r->reason ?? 'Tidak disebutkan'; $a->save(); 
+        return back()->with('success','Rejected'); 
+    }
 }
