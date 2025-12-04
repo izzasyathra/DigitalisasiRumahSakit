@@ -6,7 +6,7 @@
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 
-                <form method="POST" action="{{ route('schedules.update', $schedule) }}">
+                <form method="POST" action="{{ route('doctorschedules.update', $schedule) }}">
                     @csrf
                     @method('PUT') 
 
@@ -38,7 +38,7 @@
                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                         Update Jadwal
                     </button>
-                    <a href="{{ route('schedules.index') }}" class="ml-2 text-gray-600 hover:text-gray-900">Batal</a>
+                    <a href="{{ route('doctor.schedules.index') }}" class="ml-2 text-gray-600 hover:text-gray-900">Batal</a>
                 
                 </form> </div>
         </div>

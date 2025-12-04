@@ -1,38 +1,33 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
-            Tambah Poli Baru
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('admin.polis.store') }}">
-                    @csrf
-                    
-                    <div class="mb-4">
-                        <label for="name" class="block text-sm font-medium text-gray-700">Nama Poli</label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('name') border-red-500 @enderror">
-                        @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                        <textarea name="description" id="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ old('description') }}</textarea>
-                    </div>
-
-                    <div class="mb-6">
-                        <label for="icon" class="block text-sm font-medium text-gray-700">Ikon/Gambar (URL)</label>
-                        <input type="text" name="icon" id="icon" value="{{ old('icon') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    </div>
-
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-                        Simpan Poli
-                    </button>
-                    <a href="{{ route('admin.polis.index') }}" class="ml-2 text-gray-600 hover:text-gray-900">Batal</a>
-                </form>
+@section('content')
+    <div class="container">
+        <h2>Tambah Poli Baru</h2>
+        
+        <form action="{{ route('admin.polis.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div>
+                <label for="name">Nama Poli (Wajib, Unik):</label>
+                <input type="text" id="name" name="name" value="{{ old('name') }}" required>
+                @error('name') <div style="color: red;">{{ $message }}</div> @enderror
             </div>
-        </div>
+            
+            <div>
+                <label for="description">Deskripsi:</label>
+                <textarea id="description" name="description">{{ old('description') }}</textarea>
+                @error('description') <div style="color: red;">{{ $message }}</div> @enderror
+            </div>
+            
+            <div>
+                <label for="icon_file">Ikon/Gambar (Opsional, JPG/PNG Max 2MB):</label>
+                <input type="file" id="icon_file" name="icon_file">
+                @error('icon_file') <div style="color: red;">{{ $message }}</div> @enderror
+            </div>
+            
+            <button type="submit">Simpan Poli</button>
+        </form>
+
+        <a href="{{ route('admin.polis.index') }}">Kembali ke Daftar Poli</a>
     </div>
-</x-app-layout>
+@endsection

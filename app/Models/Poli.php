@@ -10,8 +10,14 @@ class Poli extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama_poli',
+        'nama',
         'deskripsi',
-        'ikon'
+        'icon',
     ];
+
+    // Relationships
+    public function dokters()
+    {
+        return $this->hasMany(User::class, 'poli_id')->where('role', 'dokter');
+    }
 }

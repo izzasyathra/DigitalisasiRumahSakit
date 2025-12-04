@@ -3,110 +3,105 @@
 namespace App\Http\Controllers\Dokter;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Schedule;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ScheduleController extends Controller
 {
-    // --- 1. READ (Index) ---
-    public function index()
+    public function index(Request $request)
     {
-        $userId = Auth::id(); 
-        
-        $schedules = Schedule::where('user_id', $userId)
-                                ->orderBy('day')
-                                ->orderBy('start_time')
-                                ->get();
-        
-        return view('dokter.schedules.index', compact('schedules'));
+        $schedules = Schedule::where('dokter_id', $request->user()->id)
+            ->orderBy('hari')
+            ->orderBy('jam_mulai')
+            ->get();
+
+        return response()->json($schedules);
     }
 
-    // --- 2. CREATE (View) ---
-    public function create()
-    {
-        return view('dokter.schedules.create'); 
-    }
-
-    // --- 3. STORE (Simpan + Validasi Unique Slot) ---
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'day' => 'required|string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'start_time' => [
-                'required', 
-                'date_format:H:i',
-                // Rule: start_time harus unik untuk user_id DAN hari
-                Rule::unique('schedules')->where(function ($query) use ($request) {
-                    return $query->where('user_id', Auth::id())
-                                 ->where('day', $request->day);
-                }),
-            ],
-            'duration_minutes' => 'required|integer|min:1', 
+        $request->validate([
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'jam_mulai' => 'required|date_format:H:i',
         ]);
 
-        // Simpan Data
-        Schedule::create([
-            'user_id' => Auth::id(), 
-            'day' => $validatedData['day'],
-            'start_time' => $validatedData['start_time'],
-            'duration_minutes' => $validatedData['duration_minutes'],
+        // Check for overlapping schedules
+        $exists = Schedule::where('dokter_id', $request->user()->id)
+            ->where('hari', $request->hari)
+            ->where('jam_mulai', $request->jam_mulai)
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'jam_mulai' => ['Jadwal pada hari dan jam ini sudah ada.'],
+            ]);
+        }
+
+        $schedule = Schedule::create([
+            'dokter_id' => $request->user()->id,
+            'hari' => $request->hari,
+            'jam_mulai' => $request->jam_mulai,
+            'durasi' => 30, // Fixed 30 minutes
         ]);
 
-        return redirect()->route('schedules.index')->with('success', 'Jadwal praktik berhasil ditambahkan!');
+        return response()->json([
+            'message' => 'Jadwal berhasil dibuat',
+            'schedule' => $schedule,
+        ], 201);
     }
 
-    // --- 4. EDIT (View) ---
-    public function edit(Schedule $schedule)
+    public function show($id)
     {
-        // Pengecekan Kepemilikan (Penyebab 403 AKSES DITOLAK)
-        if (Auth::id() !== $schedule->user_id) { 
-            abort(403, 'Akses Ditolak.');
-        }
+        $schedule = Schedule::where('dokter_id', auth()->id())
+            ->findOrFail($id);
         
-        return view('dokter.schedules.edit', compact('schedule'));
+        return response()->json($schedule);
     }
 
-    // --- 5. UPDATE (Perbarui) ---
-    public function update(Request $request, Schedule $schedule)
+    public function update(Request $request, $id)
     {
-        // Pengecekan Auth
-        if (Auth::id() !== $schedule->user_id) { 
-            abort(403, 'Akses Ditolak.');
-        }
+        $schedule = Schedule::where('dokter_id', auth()->id())
+            ->findOrFail($id);
 
-        // Validasi, kecualikan jadwal yang sedang diedit
-        $validatedData = $request->validate([
-            'day' => 'required|string|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'start_time' => [
-                'required', 
-                'date_format:H:i',
-                // Abaikan ID jadwal yang sedang diupdate
-                Rule::unique('schedules')->where(function ($query) use ($request) {
-                    return $query->where('user_id', Auth::id())
-                                 ->where('day', $request->day);
-                })->ignore($schedule->id), 
-            ],
-            'duration_minutes' => 'required|integer|min:1',
+        $request->validate([
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'jam_mulai' => 'required|date_format:H:i',
         ]);
-        
-        // UPDATE DATA
-        $schedule->update($validatedData);
 
-        return redirect()->route('schedules.index')->with('success', 'Jadwal berhasil diperbarui.');
-    }
+        // Check for overlapping schedules (excluding current)
+        $exists = Schedule::where('dokter_id', auth()->id())
+            ->where('hari', $request->hari)
+            ->where('jam_mulai', $request->jam_mulai)
+            ->where('id', '!=', $id)
+            ->exists();
 
-    // --- 6. DELETE (Destroy) ---
-    public function destroy(Schedule $schedule)
-    {
-        // Pengecekan Auth
-        if (Auth::id() !== $schedule->user_id) { 
-            abort(403, 'Akses Ditolak.');
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'jam_mulai' => ['Jadwal pada hari dan jam ini sudah ada.'],
+            ]);
         }
 
+        $schedule->update([
+            'hari' => $request->hari,
+            'jam_mulai' => $request->jam_mulai,
+        ]);
+
+        return response()->json([
+            'message' => 'Jadwal berhasil diupdate',
+            'schedule' => $schedule,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $schedule = Schedule::where('dokter_id', auth()->id())
+            ->findOrFail($id);
+        
         $schedule->delete();
 
-        return redirect()->route('schedules.index')->with('success', 'Jadwal berhasil dihapus.');
+        return response()->json([
+            'message' => 'Jadwal berhasil dihapus',
+        ]);
     }
 }

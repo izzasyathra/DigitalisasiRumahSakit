@@ -18,29 +18,30 @@
     <div class="bg-hero text-white min-h-screen">
         
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto">
-            <div class="text-2xl font-bold flex items-center">
-                <svg class="w-6 h-6 mr-2 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                </svg>
-                Digital Hospital
-            </div>
+    
+    <div class="text-2xl font-bold flex items-center">
+        <svg class="w-6 h-6 mr-2 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+        </svg>
+        Digital Hospital
+    </div>
 
-            <nav class="flex items-center space-x-4">
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="btn-primary-custom">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg font-semibold transition duration-300">Log in</a>
-                        
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition duration-300">Register</a>
-                        @endif
-                        
-                        <a href="{{ route('guest.index') }}" class="text-white opacity-75 hover:opacity-100 transition duration-300 text-sm ml-2">Lanjutkan sebagai Tamu</a>
-                    @endauth
+    <nav class="flex items-center space-x-4">
+        @if (Route::has('login'))
+            @auth
+                <a href="{{ url('/dashboard') }}" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition duration-300">Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg font-semibold transition duration-300">Log in</a>
+                
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition duration-300">Register</a>
                 @endif
-            </nav>
-        </header>
+                
+                <a href="{{ route('guest.index') }}" class="text-white opacity-75 hover:opacity-100 transition duration-300 text-sm ml-2">Lanjutkan sebagai Tamu</a>
+            @endauth
+        @endif
+    </nav>
+</header>
 
         <main class="max-w-7xl mx-auto p-6 lg:p-8 flex flex-col items-center text-center pt-20">
             <div class="card-glass p-10 max-w-3xl animate-pulse-slow">
@@ -78,7 +79,11 @@
                 </div>
             </section>
         </main>
-    
+        
+        <footer class="mt-20 p-4 text-center text-gray-400 border-t border-gray-700">
+            © {{ date('Y') }} Digital Hospital. All rights reserved. | <a href="#" class="hover:text-white">Tentang Kami</a> | <a href="#" class="hover:text-white">Kontak</a>
+        </footer>
+    </div>
 
     <style>
         @keyframes pulse-slow {

@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('schedules.store') }}">
+                <form method="POST" action="{{ route('doctor.schedules.store') }}">
                     @csrf
                     
                     <div class="mb-4">
@@ -37,7 +37,7 @@
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
                         Simpan Jadwal
                     </button>
-                    <a href="{{ route('schedules.index') }}" class="ml-2 text-gray-600 hover:text-gray-900">Batal</a>
+                    <a href="{{ route('doctor.schedules.index') }}" class="ml-2 text-gray-600 hover:text-gray-900">Batal</a>
                 </form>
             </div>
         </div>

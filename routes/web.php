@@ -1,85 +1,51 @@
-<?php
+// routes/web.php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\GuestController; // (Asumsi ini Controller untuk halaman publik)
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PoliController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\Dokter\ScheduleController as DokterScheduleController; // Di-alias untuk menghindari konflik
-use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\AppointmentController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AppointmentValidationController;
 
-// Halaman utama (Welcome Page)
-Route::get('/', function () {
-    // Anda dapat mengganti ini dengan tampilan publik yang sebenarnya
-    return view('welcome'); 
-});
+// --- 1. Route Publik (Guest) ---
+Route::get('/', [DashboardController::class, 'publicIndex'])->name('home');
+Route::get('/polis', [PoliController::class, 'indexPublic'])->name('polis.public');
+Route::get('/doctors', [UserController::class, 'doctorsPublic'])->name('doctors.public');
 
-// Halaman Layanan Publik (Dashboard Tamu)
-Route::get('/public-services', [GuestController::class, 'index'])->name('guest.index');
+// --- 2. Route Autentikasi ---
+Auth::routes(); // Mengurus /login dan /register (Pasien)
 
-
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    // --- DASHBOARD UMUM & PROFILE (Akses oleh semua peran) ---
+// --- 3. Route Terproteksi (Semua User yang Login) ---
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    });
 
-    
-    // =========================================================
-    // 2. ROUTE UNTUK ADMIN (Role: Admin)
-    // =========================================================
-    Route::middleware('role:Admin')->prefix('admin')->name('admin.')->group(function () {
-        
-        // Poli Management (CRUD)
-        Route::resource('polis', PoliController::class)->except(['show']); // Ganti 'poli' menjadi 'polis'
-        
-        // User Management (List, Create, Edit Dokter dan Pasien)
-        Route::resource('users', UserController::class); 
+    // Profile Management (Semua bisa mengedit profil)
+    Route::resource('profile', ProfileController::class)->only(['edit', 'update']);
 
-        // Verifikasi Janji Temu (Admin melihat SEMUA janji temu pending)
-        Route::get('appointments/validation', [AppointmentController::class, 'adminValidationIndex'])->name('appointments.validation');
-        Route::post('appointments/{appointment}/validate', [AppointmentController::class, 'adminValidate'])->name('appointments.validate');
-    });
-
-
-    // =========================================================
-    // 3. ROUTE UNTUK DOKTER (Role: Dokter)
-    // =========================================================
-    Route::middleware('role:dokter')->prefix('dokter')->name('dokter.')->group(function () { // Gunakan casing 'dokter' kecil
-        
-        // Schedule Management (CRUD Jadwal Pribadi) - Menggunakan alias ScheduleController
-        Route::resource('schedules', DokterScheduleController::class)->except(['show']); // Ganti 'schedule' menjadi 'schedules'
-        
-        // Medical Records Management (List, Create/Update Rekam Medis)
-        Route::resource('medical-records', MedicalRecordController::class);
-
-        // Validasi Janji Temu (Janji Temu yang ditujukan ke Dokter ini)
-        Route::get('appointments/validation', [AppointmentController::class, 'validationIndex'])->name('appointments.validation');
-        Route::post('appointments/{appointment}/approve', [AppointmentController::class, 'approve'])->name('appointments.approve');
-        Route::post('appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->name('appointments.reject');
-    });
-
-
-    // =========================================================
-    // 4. ROUTE UNTUK PASIEN (Role: Pasien)
-    // =========================================================
-    Route::middleware('role:pasien')->prefix('pasien')->name('pasien.')->group(function () { // Gunakan casing 'pasien' kecil
-
-        // Appointment Management (Membuat Janji Temu)
+    // --- A. Pasien Routes ---
+    Route::prefix('patient')->middleware(['role:Pasien'])->group(function () {
         Route::get('appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('appointments/my', [AppointmentController::class, 'myAppointments'])->name('appointments.my');
         
-        // Medical Records Access (Melihat Rekam Medis Pribadi)
-        Route::get('medical-records/my', [MedicalRecordController::class, 'myRecords'])->name('rm.my');
+        // Route yang bertindak sebagai API (via AJAX), harus ada di web.php
+        Route::get('schedules/available', [AppointmentController::class, 'getAvailableSchedules'])->name('schedules.available');
+        
+        // Akses Rekam Medis Pribadi
+        Route::get('medical-records/my', [MedicalRecordController::class, 'myRecords'])->name('records.my');
+    });
+
+    // --- B. Dokter Routes ---
+    Route::prefix('doctor')->middleware(['role:Dokter'])->group(function () {
+        Route::resource('schedules', ScheduleController::class); // Schedule Management
+        Route::get('appointments/validation', [AppointmentValidationController::class, 'index'])->name('appointments.doctor_validate');
+        Route::put('appointments/{appointment}/status', [AppointmentValidationController::class, 'updateStatus'])->name('appointments.update_status');
+        Route::resource('medical-records', MedicalRecordController::class); // Rekam Medis Management
+    });
+
+    // --- C. Admin Routes ---
+    Route::prefix('admin')->middleware(['role:Admin'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('polis', PoliController::class);
+        Route::resource('medicines', MedicineController::class);
+        Route::get('appointments/all', [AppointmentValidationController::class, 'indexAll'])->name('appointments.admin_all');
+        // Route untuk Laporan, dll.
     });
 });
-
-require __DIR__.'/auth.php';
