@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Poli; // Asumsikan Anda sudah membuat Model Poli
+use App\Models\Poli;
+use App\Models\User;
+// Asumsikan Anda sudah membuat Model Poli
 
 class GuestController extends Controller
 {

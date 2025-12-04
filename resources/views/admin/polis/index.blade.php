@@ -1,44 +1,52 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
+            Manajemen Poli 🏥
+        </h2>
+    </x-slot>
 
-@section('content')
-<div class="container mx-auto">
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                
+                @if (session('success'))
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">{{ session('success') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">{{ session('error') }}</div>
+                @endif
 
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Daftar Poli</h1>
-        <a href="{{ route('polis.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Tambah Poli</a>
+                <a href="{{ route('admin.polis.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg mb-4 inline-block hover:bg-indigo-700">
+                    + Tambah Poli Baru
+                </a>
+
+                <table class="min-w-full divide-y divide-gray-200 mt-4">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Poli</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach ($polis as $poli)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ $poli->name }}</td>
+                                <td class="px-6 py-4">{{ Str::limit($poli->description, 50) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('admin.polis.edit', $poli) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</a>
+                                    
+                                    <form action="{{ route('admin.polis.destroy', $poli) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Apakah Anda yakin menghapus Poli {{ $poli->name }}? Ini akan mempengaruhi data Dokter.')">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <table class="w-full bg-white shadow rounded-lg overflow-hidden">
-        <thead class="bg-blue-600 text-white">
-            <tr>
-                <th class="py-3 px-4">ID</th>
-                <th class="py-3 px-4">Nama Poli</th>
-                <th class="py-3 px-4">Deskripsi</th>
-                <th class="py-3 px-4">Aksi</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            @foreach ($polis as $p)
-            <tr class="border-b">
-                <td class="py-3 px-4">{{ $p->id }}</td>
-                <td class="py-3 px-4">{{ $p->name }}</td>
-                <td class="py-3 px-4">{{ $p->description }}</td>
-                <td class="py-3 px-4 flex gap-2">
-                    <a href="{{ route('polis.edit', $p->id) }}" class="bg-yellow-500 text-white px-3 py-1 rounded">Edit</a>
-
-                    <form action="{{ route('polis.destroy', $p->id) }}" method="POST">
-                        @csrf @method('DELETE')
-                        <button onclick="return confirm('Hapus?')" class="bg-red-600 text-white px-3 py-1 rounded">
-                            Hapus
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-
-    </table>
-
-</div>
-@endsection
+</x-app-layout>

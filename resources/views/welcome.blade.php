@@ -28,14 +28,15 @@
             <nav class="flex items-center space-x-4">
                 @if (Route::has('login'))
                     @auth
-                        @else
+                        <a href="{{ url('/dashboard') }}" class="btn-primary-custom">Dashboard</a>
+                    @else
                         <a href="{{ route('login') }}" class="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg font-semibold transition duration-300">Log in</a>
-            
+                        
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition duration-300">Register</a>
                         @endif
-            
-                        <a href="{{ route('guest.index') }}" class="text-white opacity-75 hover:opacity-100 transition duration-300 text-sm">Lanjutkan sebagai Tamu</a>
+                        
+                        <a href="{{ route('guest.index') }}" class="text-white opacity-75 hover:opacity-100 transition duration-300 text-sm ml-2">Lanjutkan sebagai Tamu</a>
                     @endauth
                 @endif
             </nav>
@@ -77,11 +78,7 @@
                 </div>
             </section>
         </main>
-        
-        <footer class="mt-20 p-4 text-center text-gray-400 border-t border-gray-700">
-            © {{ date('Y') }} Digital Hospital. All rights reserved. | <a href="#" class="hover:text-white">Tentang Kami</a> | <a href="#" class="hover:text-white">Kontak</a>
-        </footer>
-    </div>
+    
 
     <style>
         @keyframes pulse-slow {

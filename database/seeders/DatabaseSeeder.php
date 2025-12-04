@@ -1,25 +1,18 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders; // PASTI DENGAN D dan S Kapital
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\PoliSeeder; // <-- PASTIKAN BARIS INI ADA!
+use Database\Seeders\AdminUserSeeder; // <-- PASTIKAN BARIS INI ADA!
 
 class DatabaseSeeder extends Seeder
 {
-use App\Models\User;
-
-public function run(): void
-{
-    User::create([
-        'name' => 'Admin',
-        'email' => 'admin@hospital.com',
-        'password' => bcrypt('admin123'),
-        'role' => 'admin',
-    ]);
-}
-
-
+    public function run(): void
+    {
+        $this->call([
+            PoliSeeder::class, // Dipanggil setelah di-use di atas
+            AdminUserSeeder::class,
+        ]);
     }
-
+}

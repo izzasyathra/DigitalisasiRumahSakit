@@ -31,27 +31,32 @@
             </nav>
         </header>
 
-        <main class="max-w-7xl mx-auto p-6 lg:p-8 pt-10">
-            <h1 class="text-4xl font-extrabold mb-10 text-center">Layanan & Jadwal Dokter</h1>
+        
+            <main class="max-w-7xl mx-auto p-6 lg:p-8 pt-10">
+    <h1 class="text-4xl font-extrabold mb-10 text-center">Layanan & Jadwal Dokter</h1>
+    
+    <section class="w-full mb-16">
+        <h2 class="text-3xl font-bold mb-8 border-b border-gray-600 pb-2">Daftar Poli 🏥</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             
-            <section class="w-full">
-                <h2 class="text-3xl font-bold mb-8">Daftar Poli</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            @forelse ($polis as $poli)
+                <div class="card-glass p-6 text-center transition duration-300 hover:scale-[1.02] cursor-pointer">
+                    <div class="text-4xl mb-3">{{ $poli->icon_path ?? '🏥' }}</div>
                     
-                    @foreach ($polis as $poli)
-                        <div class="card-glass p-6 text-center transition duration-300 hover:scale-[1.02] cursor-pointer">
-                            <div class="text-4xl mb-3">{{ $poli->ikon ?? '🏥' }}</div>
-                            <h3 class="text-xl font-semibold mb-1">{{ $poli->nama_poli }}</h3>
-                            <p class="text-gray-300 text-sm">{{ $poli->deskripsi }}</p>
-                            
-                            <a href="#" class="text-pink-400 text-sm mt-2 block hover:underline">Lihat Jadwal Dokter</a>
-                        </div>
-                    @endforeach
+                    <h3 class="text-xl font-semibold mb-1">{{ $poli->name }}</h3> 
                     
+                    <p class="text-gray-300 text-sm">{{ $poli->description }}</p>
+                    
+                    <a href="#dokter-poli-{{ $poli->id }}" class="text-pink-400 text-sm mt-2 block hover:underline">Lihat Dokter & Jadwal</a>
                 </div>
-            </section>
+            @empty
+                <p class="text-gray-400 col-span-4 text-center">Data Poli belum tersedia di sistem.</p>
+            @endforelse
             
-            </main>
+        </div>
+    </section>
+    
+    </main>
         
         <footer class="mt-20 p-4 text-center text-gray-400 border-t border-gray-700">
             </footer>

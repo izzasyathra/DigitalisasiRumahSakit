@@ -1,72 +1,64 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
-use App\Models\Poli;
-use App\Models\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Appointment;
+use App\Models\User; // Digunakan untuk relasi Pasien/Dokter
 
 class AppointmentController extends Controller
 {
-    public function create()
+    // ==========================================================
+    // FUNGSI DOKTER: VALIDASI JANJI TEMU
+    // ==========================================================
+
+    /**
+     * Menampilkan daftar Janji Temu 'Pending' yang ditujukan kepada Dokter ini.
+     */
+    public function validationIndex()
     {
-        $polis = Poli::with('doctors')->get();
-        return view('patient.appointments.create', compact('polis'));
-    }
+        $doctorId = Auth::id();
 
-    public function store(Request $r)
+        $pendingAppointments = Appointment::where('doctor_id', $doctorId)
+                                            ->where('status', 'pending')
+                                            ->with('patient', 'poli') 
+                                            ->orderBy('booking_date', 'asc')
+                                            ->get();
+
+        return view('dokter.appointments.validation', compact('pendingAppointments'));
+    }
+    
+    /**
+     * Menyetujui (Approve) Janji Temu.
+     */
+    public function approve(Appointment $appointment)
     {
-        $r->validate([
-            'poli_id'=>'required|exists:polis,id',
-            'doctor_id'=>'required|exists:users,id',
-            'schedule_id'=>'required|exists:schedules,id',
-            'booking_date'=>'required|date',
-            'complaint'=>'required|string'
-        ]);
+        // 1. Pengecekan Kepemilikan dan Status
+        if (Auth::id() !== $appointment->doctor_id || $appointment->status !== 'pending') {
+            return back()->with('error', 'Janji temu tidak valid untuk disetujui.');
+        }
 
-        $exists = Appointment::where('doctor_id',$r->doctor_id)
-            ->where('schedule_id',$r->schedule_id)
-            ->where('booking_date',$r->booking_date)
-            ->whereIn('status',['Pending','Approved'])
-            ->exists();
+        // 2. Update Status
+        $appointment->update(['status' => 'approved']);
 
-        if($exists) return back()->withErrors(['slot'=>'Slot sudah diambil']);
-
-        Appointment::create([
-            'patient_id'=>auth()->id(),
-            'doctor_id'=>$r->doctor_id,
-            'schedule_id'=>$r->schedule_id,
-            'booking_date'=>$r->booking_date,
-            'complaint'=>$r->complaint,
-            'status'=>'Pending'
-        ]);
-
-        return redirect()->route('patient.appointments')->with('success','Janji temu dibuat');
+        return redirect()->route('dokter.appointments.validation')->with('success', 'Janji temu berhasil disetujui.');
     }
 
-    public function indexAdmin()
-    { $appointments = Appointment::with('patient','doctor','schedule')->orderBy('booking_date')->get(); 
-        return view('admin.appointments.index', compact('appointments')); 
+    /**
+     * Menolak (Reject) Janji Temu.
+     */
+    public function reject(Appointment $appointment)
+    {
+        // 1. Pengecekan Kepemilikan dan Status
+        if (Auth::id() !== $appointment->doctor_id || $appointment->status !== 'pending') {
+            return back()->with('error', 'Janji temu tidak valid untuk ditolak.');
+        }
+        
+        // 2. Update Status
+        $appointment->update(['status' => 'rejected']);
+
+        return redirect()->route('dokter.appointments.validation')->with('success', 'Janji temu berhasil ditolak.');
     }
 
-    public function indexDoctor()
-    { $appointments = Appointment::where('doctor_id',auth()->id())->get(); 
-        return view('doctor.appointments.index', compact('appointments')); 
-    }
-
-    public function indexPatient()
-    { $appointments = Appointment::where('patient_id',auth()->id())->get(); 
-        return view('patient.appointments.index', compact('appointments')); 
-    }
-
-
-    public function approve($id)
-    { $a = Appointment::findOrFail($id); $a->status='Approved'; $a->save(); 
-        return back()->with('success','Approved'); 
-    }
-
-    public function reject(Request $r,$id)
-    { $a = Appointment::findOrFail($id); $a->status='Rejected'; $a->reject_reason = $r->reason ?? 'Tidak disebutkan'; $a->save(); 
-        return back()->with('success','Rejected'); 
-    }
 }

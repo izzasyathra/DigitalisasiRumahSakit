@@ -4,40 +4,41 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Appointment;
+use App\Models\MedicalRecord;
+use App\Models\Schedule;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menampilkan dashboard sesuai dengan peran (role) pengguna yang login.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     */
     public function index(Request $request)
     {
-        // Mendapatkan objek pengguna yang sedang login
         $user = Auth::user();
+        $today = Carbon::now()->format('Y-m-d');
+        $userId = $user->id;
+        $pendingAppointments = collect([]);
+        $approvedAppointments = collect([]);
+        $latestPatients = collect([]);
+        $schedules = collect([]);
 
-        // Pengecekan role pengguna
-        if ($user->role === 'Admin') {
-            // Dashboard Admin: Menampilkan ringkasan sistem, janji temu pending, dll.
+        if ($user->role === 'Admin') { 
             return view('dashboard.admin');
         } 
         
-        elseif ($user->role === 'Dokter') {
-            // Dashboard Dokter: Menampilkan janji temu yang perlu divalidasi dan antrean konsultasi hari ini.
-            return view('dashboard.dokter');
-        } 
-        
-        elseif ($user->role === 'Pasien') {
-            // Dashboard Pasien: Menampilkan status janji temu terakhir, notifikasi resep, dll.
-            return view('dashboard.pasien');
-        } 
-        
-        else {
-            // Role tidak dikenal atau role default
-            // Anda bisa mengarahkan ke halaman home/welcome jika role tidak terdaftar
-            return redirect('/');
+        elseif ($user->role === 'dokter') { 
+            try {
+                $pendingAppointments = Appointment::where('doctor_id', $userId)
+                                                    ->where('status', 'Pending')
+                                                    ->with('patient')
+                                                    ->get();
+            } catch (\Exception $e) {} 
+
+            return view('dashboard.dokter', compact(
+                'pendingAppointments', 
+                'approvedAppointments', 
+                'latestPatients',
+                'schedules'
+            ));
         }
     }
 }
