@@ -10,14 +10,26 @@ class Poli extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama',
-        'deskripsi',
+        'name',
+        'description',
         'icon',
     ];
 
-    // Relationships
+    /**
+     * Relasi ke User (Dokter)
+     * Satu Poli memiliki banyak Dokter
+     */
     public function dokters()
     {
-        return $this->hasMany(User::class, 'poli_id')->where('role', 'dokter');
+        return $this->hasMany(User::class, 'poli_id')
+                    ->where('role', 'dokter');
+    }
+
+    /**
+     * Get jumlah dokter di poli ini
+     */
+    public function dokters_count()
+    {
+        return $this->dokters()->count();
     }
 }

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Poli;
 use App\Models\Medicine;
@@ -13,6 +14,18 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Truncate tables
+        User::truncate();
+        Poli::truncate();
+        Medicine::truncate();
+        Schedule::truncate();
+
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         // Create Polis
         $poliUmum = Poli::create([
             'nama' => 'Poli Umum',
@@ -100,21 +113,21 @@ class DatabaseSeeder extends Seeder
         Schedule::create([
             'dokter_id' => $dokter1->id,
             'hari' => 'Senin',
-            'jam_mulai' => '08:00',
+            'jam_mulai' => '08:00:00',
             'durasi' => 30,
         ]);
 
         Schedule::create([
             'dokter_id' => $dokter1->id,
             'hari' => 'Senin',
-            'jam_mulai' => '10:00',
+            'jam_mulai' => '10:00:00',
             'durasi' => 30,
         ]);
 
         Schedule::create([
             'dokter_id' => $dokter1->id,
             'hari' => 'Rabu',
-            'jam_mulai' => '09:00',
+            'jam_mulai' => '09:00:00',
             'durasi' => 30,
         ]);
 
@@ -122,14 +135,14 @@ class DatabaseSeeder extends Seeder
         Schedule::create([
             'dokter_id' => $dokter2->id,
             'hari' => 'Selasa',
-            'jam_mulai' => '08:00',
+            'jam_mulai' => '08:00:00',
             'durasi' => 30,
         ]);
 
         Schedule::create([
             'dokter_id' => $dokter2->id,
             'hari' => 'Kamis',
-            'jam_mulai' => '13:00',
+            'jam_mulai' => '13:00:00',
             'durasi' => 30,
         ]);
 
@@ -137,14 +150,14 @@ class DatabaseSeeder extends Seeder
         Schedule::create([
             'dokter_id' => $dokter3->id,
             'hari' => 'Senin',
-            'jam_mulai' => '09:00',
+            'jam_mulai' => '09:00:00',
             'durasi' => 30,
         ]);
 
         Schedule::create([
             'dokter_id' => $dokter3->id,
             'hari' => 'Jumat',
-            'jam_mulai' => '10:00',
+            'jam_mulai' => '10:00:00',
             'durasi' => 30,
         ]);
 

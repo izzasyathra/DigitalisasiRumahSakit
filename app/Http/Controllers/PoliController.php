@@ -3,86 +3,78 @@
 namespace App\Http\Controllers;
 
 use App\Models\Poli;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
-class PoliController extends Controller
+class PublicController extends Controller
 {
-    /**
-     * Menampilkan daftar semua Poli. (Akses Admin)
-     */
+    // Home page
     public function index()
     {
-        // Diasumsikan route ini hanya dapat diakses oleh Admin
-        $polis = Poli::orderBy('name')->get();
+        $polis = Poli::withCount('dokters')->take(6)->get();
+        $dokters = User::with('poli')
+            ->where('role', 'dokter')
+            ->take(6)
+            ->get();
 
-        return view('admin.polis.index', compact('polis'));
+        // Untuk guest, tidak ada approvedAppointments
+        $approvedAppointments = collect();
+
+        return view('public.home', compact('polis', 'dokters', 'approvedAppointments'));
     }
 
-    /**
-     * Menampilkan formulir untuk membuat Poli baru.
-     */
-    public function create()
+    // Get all polis
+    public function polis()
     {
-        return view('admin.polis.create');
+        $polis = Poli::withCount('dokters')->get();
+        return view('public.polis', compact('polis'));
     }
 
-    /**
-     * Menyimpan Poli baru ke database.
-     */
-    public function store(Request $request)
+    // Get poli details - INI YANG DIPERBAIKI
+    public function poliDetail($id)
     {
-        $validatedData = $request->validate([
-            // Nama Poli harus unik (sesuai syarat proyek)
-            'name' => 'required|string|max:255|unique:polis,name', 
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string',
-        ]);
+        // Cari poli berdasarkan ID
+        $poli = Poli::findOrFail($id);
 
-        Poli::create($validatedData);
+        // Ambil dokter yang terkait dengan poli ini
+        $dokters = User::where('role', 'dokter')
+                       ->where('poli_id', $id)
+                       ->with('schedules')
+                       ->get();
 
-        return redirect()->route('admin.polis.index')->with('success', 'Poli baru berhasil ditambahkan.');
+        // Kirim kedua variable ke view
+        return view('public.poli-detail', compact('poli', 'dokters'));
     }
 
-    // Metode show() diabaikan (sesuai route kecuali ['show'])
-
-    /**
-     * Menampilkan formulir untuk mengedit Poli tertentu.
-     */
-    public function edit(Poli $poli)
+    // Get all doctors
+    public function dokters(Request $request)
     {
-        return view('admin.polis.edit', compact('poli'));
-    }
+        $query = User::with(['poli', 'schedules'])
+            ->where('role', 'dokter');
 
-    /**
-     * Memperbarui Poli yang sudah ada.
-     */
-    public function update(Request $request, Poli $poli)
-    {
-        $validatedData = $request->validate([
-            // Nama Poli harus unik, kecuali Poli ini sendiri
-            'name' => ['required', 'string', 'max:255', Rule::unique('polis')->ignore($poli->id)], 
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string',
-        ]);
-
-        $poli->update($validatedData);
-
-        return redirect()->route('admin.polis.index')->with('success', 'Poli berhasil diperbarui.');
-    }
-
-    /**
-     * Menghapus Poli.
-     */
-    public function destroy(Poli $poli)
-    {
-        try {
-            $poli->delete();
-            return redirect()->route('admin.polis.index')->with('success', 'Poli berhasil dihapus.');
-        } catch (\Exception $e) {
-            // Tangani error jika ada Dokter atau Janji Temu yang masih terkait
-            return back()->with('error', 'Gagal menghapus Poli. Pastikan tidak ada Dokter atau Janji Temu yang masih terkait.');
+        // Filter by poli
+        if ($request->has('poli_id') && $request->poli_id != '') {
+            $query->where('poli_id', $request->poli_id);
         }
+
+        // Search by name
+        if ($request->has('search') && $request->search != '') {
+            $query->where('username', 'like', '%' . $request->search . '%');
+        }
+
+        $dokters = $query->get();
+        $polis = Poli::all(); // For filter
+
+        return view('public.dokters', compact('dokters', 'polis'));
+    }
+
+    // Get doctor detail with schedules
+    public function dokterDetail($id)
+    {
+        $dokter = User::with(['poli', 'schedules'])
+            ->where('role', 'dokter')
+            ->findOrFail($id);
+
+        return view('public.dokter-detail', compact('dokter'));
     }
 }

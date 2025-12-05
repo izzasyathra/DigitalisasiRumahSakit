@@ -1,150 +1,120 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pasien;
 
+use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Poli;
-use App\Models\Schedule;
 use App\Models\User;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-use Carbon\Carbon; // Digunakan untuk memproses tanggal dan waktu
 
 class AppointmentController extends Controller
 {
-    // ===================================
-    // FUNGSI PASIEN: BOOKING APPOINTMENT
-    // ===================================
-    
-    /**
-     * Step 1: Menampilkan halaman utama booking (Pilih Poli).
-     */
-    public function showBookingForm()
+    // Show list of polis
+    public function selectPoli()
     {
-        $polis = Poli::all();
-        // View: resources/views/patient/appointments/booking_step1_poli.blade.php
-        return view('patient.appointments.booking_step1_poli', compact('polis'));
-    }
-    
-    /**
-     * Step 2: Mengambil Dokter dan Jadwal berdasarkan Poli yang dipilih. (Dipanggil via AJAX/Form)
-     */
-    public function getDoctorsByPoli(Request $request)
-    {
-        $poliId = $request->input('poli_id');
-        
-        $doctors = User::where('poli_id', $poliId)
-                       ->where('role', 'Dokter')
-                       ->with('schedules')
-                       ->get();
-                       
-        // Mengembalikan daftar dokter yang memiliki jadwal
-        return response()->json($doctors->filter(fn($d) => $d->schedules->isNotEmpty()));
+        $polis = Poli::withCount('dokters')->get();
+        return view('pasien.appointments.select-poli', compact('polis'));
     }
 
-    /**
-     * Step 3: Menyimpan data Janji Temu (Create Appointment).
-     */
-    public function storeBooking(Request $request)
+    // Show doctors by poli
+    public function selectDokter($poliId)
+    {
+        $poli = Poli::findOrFail($poliId);
+        $dokters = User::with(['schedules'])
+            ->where('role', 'dokter')
+            ->where('poli_id', $poliId)
+            ->get();
+
+        return view('pasien.appointments.select-dokter', compact('poli', 'dokters'));
+    }
+
+    // Show booking form
+    public function create(Request $request)
+    {
+        $dokterId = $request->query('dokter_id');
+        $jadwalId = $request->query('jadwal_id');
+
+        if (!$dokterId || !$jadwalId) {
+            return redirect()->route('pasien.appointments.select-poli')
+                ->with('error', 'Silakan pilih dokter dan jadwal terlebih dahulu');
+        }
+
+        $dokter = User::with('poli')->findOrFail($dokterId);
+        $jadwal = Schedule::findOrFail($jadwalId);
+
+        // Ensure variables are set
+        if (!$dokter || !$jadwal) {
+            return redirect()->route('pasien.appointments.select-poli')
+                ->with('error', 'Data dokter atau jadwal tidak ditemukan');
+        }
+
+        return view('pasien.appointments.create', compact('dokter', 'jadwal'));
+    }
+
+    // Store appointment
+    public function store(Request $request)
     {
         $request->validate([
-            'doctor_id' => 'required|exists:users,id',
-            'schedule_id' => 'required|exists:schedules,id',
-            'booking_date' => 'required|date|after_or_equal:today',
-            'short_complaint' => 'required|string|max:255',
+            'dokter_id' => 'required|exists:users,id',
+            'jadwal_id' => 'required|exists:schedules,id',
+            'tanggal_booking' => 'required|date|after_or_equal:today',
+            'keluhan' => 'required|string',
         ]);
-        
-        $schedule = Schedule::findOrFail($request->schedule_id);
-        $bookingDate = Carbon::parse($request->booking_date);
-        
-        // 1. Cek kecocokan Hari dan Tanggal yang dipilih Pasien
-        if ($bookingDate->dayName !== $schedule->day) {
-            return back()->with('error', 'Tanggal yang dipilih tidak sesuai dengan hari jadwal dokter.')->withInput();
-        }
-        
-        // 2. Cek ketersediaan slot (Pastikan slot belum dibooking pada tanggal tsb)
-        $isBooked = Appointment::where('doctor_id', $request->doctor_id)
-                                ->where('schedule_id', $request->schedule_id)
-                                ->where('booking_date', $request->booking_date)
-                                ->exists();
-                                
-        if ($isBooked) {
-            return back()->with('error', 'Slot jadwal ini sudah dibooking. Pilih waktu lain.')->withInput();
-        }
+
+        // Verify schedule belongs to selected doctor
+        $schedule = Schedule::where('id', $request->jadwal_id)
+            ->where('dokter_id', $request->dokter_id)
+            ->firstOrFail();
 
         Appointment::create([
-            'patient_id' => Auth::id(),
-            'doctor_id' => $request->doctor_id,
-            'schedule_id' => $request->schedule_id,
-            'booking_date' => $request->booking_date,
-            'short_complaint' => $request->short_complaint,
-            'status' => 'Pending', 
+            'pasien_id' => auth()->id(),
+            'dokter_id' => $request->dokter_id,
+            'jadwal_id' => $request->jadwal_id,
+            'tanggal_booking' => $request->tanggal_booking,
+            'keluhan' => $request->keluhan,
+            'status' => 'pending',
         ]);
 
-        return redirect()->route('patient.appointments.index')->with('success', 'Janji Temu berhasil dibuat. Menunggu validasi Dokter/Admin.');
-    }
-    
-    /**
-     * Pasien: Melihat riwayat janji temu mereka (View My Appointments).
-     */
-    public function viewMyAppointments()
-    {
-        $appointments = Appointment::where('patient_id', Auth::id())
-                                   ->with(['doctor.poli', 'schedule'])
-                                   ->latest()
-                                   ->get();
-        // View: resources/views/patient/appointments/index.blade.php
-        return view('patient.appointments.index', compact('appointments'));
+        return redirect()->route('pasien.appointments.index')
+            ->with('success', 'Janji temu berhasil dibuat. Menunggu konfirmasi dari dokter.');
     }
 
-    // ===================================
-    // FUNGSI VALIDASI: DOKTER & ADMIN
-    // ===================================
-
-    /**
-     * Admin/Dokter: Melihat daftar Janji Temu status "Pending".
-     */
-    public function viewPendingAppointments()
+    // Get patient's appointments
+    public function index(Request $request)
     {
-        $query = Appointment::where('status', 'Pending')->with(['patient', 'doctor', 'schedule']);
-        
-        if (Auth::user()->isDoctor()) {
-            // Jika Dokter: Hanya lihat Janji Temu untuk dirinya sendiri
-            $query->where('doctor_id', Auth::id());
-        } 
+        $appointments = Appointment::with(['dokter.poli', 'jadwal', 'medicalRecord'])
+            ->where('pasien_id', $request->user()->id)
+            ->latest()
+            ->paginate(10);
 
-        $pendingAppointments = $query->orderBy('booking_date')->paginate(15);
-        
-        // Pilih view berdasarkan peran
-        $view = Auth::user()->isAdmin() ? 'admin.appointments.pending' : 'doctor.appointments.pending';
-        
-        return view($view, compact('pendingAppointments'));
+        return view('pasien.appointments.index', compact('appointments'));
     }
 
-    /**
-     * Admin/Dokter: Mengubah status menjadi Approved atau Rejected.
-     */
-    public function updateStatus(Request $request, Appointment $appointment)
+    // Get single appointment
+    public function show($id)
     {
-        // Otorisasi: Hanya Admin atau Dokter pemilik janji temu yang bisa validasi
-        if (Auth::user()->isDoctor() && $appointment->doctor_id !== Auth::id()) {
-            abort(403, 'Anda tidak memiliki wewenang untuk memvalidasi janji temu ini.');
-        }
+        $appointment = Appointment::with(['dokter.poli', 'jadwal', 'medicalRecord.prescriptions.medicine'])
+            ->where('pasien_id', auth()->id())
+            ->findOrFail($id);
 
-        $request->validate([
-            'status' => ['required', 'string', Rule::in(['Approved', 'Rejected'])],
-            'rejection_reason' => ['nullable', 'required_if:status,Rejected', 'string', 'max:500'],
+        return view('pasien.appointments.show', compact('appointment'));
+    }
+
+    // Cancel appointment (only if pending)
+    public function cancel($id)
+    {
+        $appointment = Appointment::where('pasien_id', auth()->id())
+            ->where('status', 'pending')
+            ->findOrFail($id);
+
+        $appointment->update([
+            'status' => 'rejected',
+            'alasan_reject' => 'Dibatalkan oleh pasien',
         ]);
 
-        if ($appointment->status !== 'Pending') {
-             return back()->with('error', 'Status sudah pernah divalidasi.');
-        }
-
-        $appointment->status = $request->status;
-        $appointment->rejection_reason = $request->rejection_reason;
-        $appointment->save();
-
-        return back()->with('success', 'Status Janji Temu berhasil diperbarui.');
+        return redirect()->route('pasien.appointments.index')
+            ->with('success', 'Janji temu berhasil dibatalkan');
     }
 }

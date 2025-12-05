@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Poli;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,12 +15,12 @@ class UserController extends Controller
         $query = User::with('poli');
 
         // Filter by role
-        if ($request->has('role')) {
+        if ($request->has('role') && $request->role != '') {
             $query->where('role', $request->role);
         }
 
         // Search by username or email
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search != '') {
             $query->where(function($q) use ($request) {
                 $q->where('username', 'like', '%' . $request->search . '%')
                   ->orWhere('email', 'like', '%' . $request->search . '%');
@@ -28,7 +29,13 @@ class UserController extends Controller
 
         $users = $query->latest()->paginate(10);
 
-        return response()->json($users);
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function create()
+    {
+        $polis = Poli::all();
+        return view('admin.users.create', compact('polis'));
     }
 
     public function store(Request $request)
@@ -38,13 +45,13 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role' => 'required|in:admin,dokter,pasien',
-            'poli_id' => 'required_if:role,dokter|exists:polis,id',
+            'poli_id' => 'required_if:role,dokter|nullable|exists:polis,id',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'birth_date' => 'nullable|date',
         ]);
 
-        $user = User::create([
+        User::create([
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -55,16 +62,21 @@ class UserController extends Controller
             'birth_date' => $request->birth_date,
         ]);
 
-        return response()->json([
-            'message' => 'User berhasil dibuat',
-            'user' => $user->load('poli'),
-        ], 201);
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil dibuat');
     }
 
     public function show($id)
     {
         $user = User::with('poli')->findOrFail($id);
-        return response()->json($user);
+        return view('admin.users.show', compact('user'));
+    }
+
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        $polis = Poli::all();
+        return view('admin.users.edit', compact('user', 'polis'));
     }
 
     public function update(Request $request, $id)
@@ -76,7 +88,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|min:6',
             'role' => 'required|in:admin,dokter,pasien',
-            'poli_id' => 'required_if:role,dokter|exists:polis,id',
+            'poli_id' => 'required_if:role,dokter|nullable|exists:polis,id',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'birth_date' => 'nullable|date',
@@ -93,19 +105,22 @@ class UserController extends Controller
             'birth_date' => $request->birth_date,
         ]);
 
-        return response()->json([
-            'message' => 'User berhasil diupdate',
-            'user' => $user->load('poli'),
-        ]);
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil diupdate');
     }
 
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+        
+        // Prevent deleting own account
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Tidak dapat menghapus akun sendiri');
+        }
+        
         $user->delete();
 
-        return response()->json([
-            'message' => 'User berhasil dihapus',
-        ]);
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil dihapus');
     }
 }

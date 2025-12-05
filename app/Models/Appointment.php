@@ -7,24 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'pasien_id',
         'dokter_id',
-        'jadwal_id',
+        'poli_id',
+        'schedule_id',
         'tanggal_booking',
         'keluhan',
         'status',
-        'alasan_reject',
     ];
-
-    protected $casts = [
-        'tanggal_booking' => 'date',
-    ];
-
-    // Relationships
-    public function pasien()
+        public function pasien()
     {
         return $this->belongsTo(User::class, 'pasien_id');
     }
@@ -34,34 +26,14 @@ class Appointment extends Model
         return $this->belongsTo(User::class, 'dokter_id');
     }
 
-    public function jadwal()
+    public function poli()
     {
-        return $this->belongsTo(Schedule::class, 'jadwal_id');
+        return $this->belongsTo(Poli::class, 'poli_id');
     }
 
-    public function medicalRecord()
+    public function schedule()
     {
-        return $this->hasOne(MedicalRecord::class);
+        return $this->belongsTo(Schedule::class, 'schedule_id');
     }
 
-    // Helper methods
-    public function isPending()
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isApproved()
-    {
-        return $this->status === 'approved';
-    }
-
-    public function isRejected()
-    {
-        return $this->status === 'rejected';
-    }
-
-    public function isSelesai()
-    {
-        return $this->status === 'selesai';
-    }
 }

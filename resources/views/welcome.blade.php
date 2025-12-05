@@ -64,7 +64,6 @@
                             ['name' => 'Poli Umum', 'icon' => '🩺', 'desc' => 'Layanan kesehatan umum.'],
                             ['name' => 'Poli Gigi', 'icon' => '🦷', 'desc' => 'Spesialis perawatan gigi.'],
                             ['name' => 'Poli Anak', 'icon' => '🧸', 'desc' => 'Kesehatan dan tumbuh kembang anak.'],
-                            ['name' => 'Poli Mata', 'icon' => '👓', 'desc' => 'Pemeriksaan mata dan visus.'],
                         ];
                     @endphp
                     

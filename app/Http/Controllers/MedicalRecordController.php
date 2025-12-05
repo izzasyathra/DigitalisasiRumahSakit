@@ -13,23 +13,47 @@ class MedicalRecordController extends Controller
         return view('doctor.medical_records.create', compact('appointment'));
     }
 
-    public function store(Request $r)
-    {
-        $r->validate(['appointment_id'=>'required','diagnosis'=>'required']);
-        $a = Appointment::findOrFail($r->appointment_id);
-        $mr = MedicalRecord::create([
-            'appointment_id'=>$a->id,
-            'patient_id'=>$a->patient_id,
-            'doctor_id'=>$a->doctor_id,
-            'diagnosis'=>$r->diagnosis,
-            'action'=>$r->action,
-            'note'=>$r->note
-        ]);
-        $a->status = 'Selesai'; $a->save();
-        return redirect()->route('doctor.medical_records.index')->with('success','Rekam medis disimpan');
+    public function store(Request $request)
+{
+    $request->validate([
+        'appointment_id'=>'required|exists:appointments,id',
+        'diagnosis'=>'required|string',
+        'treatment'=>'nullable|string',
+        'prescriptions'=>'nullable|array',
+        'prescriptions.*.medicine_id'=>'required|exists:medicines,id',
+        'prescriptions.*.quantity'=>'required|integer|min:1'
+    ]);
+
+    $appointment = Appointment::findOrFail($request->appointment_id);
+    // only doctor assigned can save
+    if(auth()->id() !== $appointment->doctor_id) abort(403);
+
+    $mr = MedicalRecord::create([
+        'patient_id'=>$appointment->patient_id,
+        'doctor_id'=>$appointment->doctor_id,
+        'appointment_id'=>$appointment->id,
+        'diagnosis'=>$request->diagnosis,
+        'treatment'=>$request->treatment,
+        'notes'=>$request->notes,
+        'visit_date'=>now()
+    ]);
+
+    if($request->filled('prescriptions')){
+        foreach($request->prescriptions as $p){
+            Prescription::create([
+                'medical_record_id'=>$mr->id,
+                'medicine_id'=>$p['medicine_id'],
+                'quantity'=>$p['quantity']
+            ]);
+            // reduce stock
+            $med = Medicine::find($p['medicine_id']);
+            $med->decrement('stock', $p['quantity']);
+        }
     }
 
-    public function indexDoctor(){ $records = MedicalRecord::where('doctor_id',auth()->id())->with('appointment.patient')->get(); 
-        return view('doctor.medical_records.index', compact('records')); 
-    }
+    $appointment->status = 'done';
+    $appointment->save();
+
+    return redirect()->route('doctor.dashboard')->with('success','Rekam medis tersimpan');
+}
 }

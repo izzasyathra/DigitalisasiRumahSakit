@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Dokter;
 use App\Http\Controllers\Controller;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class ScheduleController extends Controller
 {
+    // LIST SCHEDULE
     public function index(Request $request)
     {
         $schedules = Schedule::where('dokter_id', $request->user()->id)
@@ -16,49 +16,34 @@ class ScheduleController extends Controller
             ->orderBy('jam_mulai')
             ->get();
 
-        return response()->json($schedules);
+        return view('dokter.schedules.index', compact('schedules'));
     }
 
-    public function store(Request $request)
+    // HALAMAN CREATE SCHEDULE
+    public function create()
     {
-        $request->validate([
-            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
-            'jam_mulai' => 'required|date_format:H:i',
-        ]);
-
-        // Check for overlapping schedules
-        $exists = Schedule::where('dokter_id', $request->user()->id)
-            ->where('hari', $request->hari)
-            ->where('jam_mulai', $request->jam_mulai)
-            ->exists();
-
-        if ($exists) {
-            throw ValidationException::withMessages([
-                'jam_mulai' => ['Jadwal pada hari dan jam ini sudah ada.'],
-            ]);
-        }
-
-        $schedule = Schedule::create([
-            'dokter_id' => $request->user()->id,
-            'hari' => $request->hari,
-            'jam_mulai' => $request->jam_mulai,
-            'durasi' => 30, // Fixed 30 minutes
-        ]);
-
-        return response()->json([
-            'message' => 'Jadwal berhasil dibuat',
-            'schedule' => $schedule,
-        ], 201);
+        return view('dokter.schedules.create');
     }
 
+    // DETAIL SCHEDULE
     public function show($id)
     {
         $schedule = Schedule::where('dokter_id', auth()->id())
             ->findOrFail($id);
-        
-        return response()->json($schedule);
+
+        return view('dokter.schedules.show', compact('schedule'));
     }
 
+    // HALAMAN EDIT
+    public function edit($id)
+    {
+        $schedule = Schedule::where('dokter_id', auth()->id())
+            ->findOrFail($id);
+
+        return view('dokter.schedules.edit', compact('schedule'));
+    }
+
+    // UPDATE JADWAL
     public function update(Request $request, $id)
     {
         $schedule = Schedule::where('dokter_id', auth()->id())
@@ -69,7 +54,7 @@ class ScheduleController extends Controller
             'jam_mulai' => 'required|date_format:H:i',
         ]);
 
-        // Check for overlapping schedules (excluding current)
+        // CEK JADWAL BENTROK
         $exists = Schedule::where('dokter_id', auth()->id())
             ->where('hari', $request->hari)
             ->where('jam_mulai', $request->jam_mulai)
@@ -77,9 +62,9 @@ class ScheduleController extends Controller
             ->exists();
 
         if ($exists) {
-            throw ValidationException::withMessages([
-                'jam_mulai' => ['Jadwal pada hari dan jam ini sudah ada.'],
-            ]);
+            return back()->withErrors([
+                'jam_mulai' => 'Jadwal pada hari dan jam ini sudah ada.',
+            ])->withInput();
         }
 
         $schedule->update([
@@ -87,21 +72,19 @@ class ScheduleController extends Controller
             'jam_mulai' => $request->jam_mulai,
         ]);
 
-        return response()->json([
-            'message' => 'Jadwal berhasil diupdate',
-            'schedule' => $schedule,
-        ]);
+        return redirect()->route('dokter.schedules.index')
+            ->with('success', 'Jadwal berhasil diupdate');
     }
 
+    // HAPUS JADWAL
     public function destroy($id)
     {
         $schedule = Schedule::where('dokter_id', auth()->id())
             ->findOrFail($id);
-        
+
         $schedule->delete();
 
-        return response()->json([
-            'message' => 'Jadwal berhasil dihapus',
-        ]);
+        return redirect()->route('dokter.schedules.index')
+            ->with('success', 'Jadwal berhasil dihapus');
     }
 }

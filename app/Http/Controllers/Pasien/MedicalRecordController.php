@@ -16,7 +16,7 @@ class MedicalRecordController extends Controller
             ->latest()
             ->paginate(10);
 
-        return response()->json($records);
+        return view('pasien.medical-records.index', compact('records'));
     }
 
     // Get single medical record
@@ -26,6 +26,6 @@ class MedicalRecordController extends Controller
             ->where('pasien_id', auth()->id())
             ->findOrFail($id);
 
-        return response()->json($record);
+        return view('pasien.medical-records.show', compact('record'));
     }
 }

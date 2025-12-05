@@ -12,7 +12,12 @@ class PoliController extends Controller
     public function index()
     {
         $polis = Poli::withCount('dokters')->latest()->get();
-        return response()->json($polis);
+        return view('admin.polis.index', compact('polis'));
+    }
+
+    public function create()
+    {
+        return view('admin.polis.create');
     }
 
     public function store(Request $request)
@@ -33,18 +38,22 @@ class PoliController extends Controller
             $data['icon'] = $path;
         }
 
-        $poli = Poli::create($data);
+        Poli::create($data);
 
-        return response()->json([
-            'message' => 'Poli berhasil dibuat',
-            'poli' => $poli,
-        ], 201);
+        return redirect()->route('admin.polis.index')
+            ->with('success', 'Poli berhasil dibuat');
     }
 
     public function show($id)
     {
         $poli = Poli::with('dokters')->findOrFail($id);
-        return response()->json($poli);
+        return view('admin.polis.show', compact('poli'));
+    }
+
+    public function edit($id)
+    {
+        $poli = Poli::findOrFail($id);
+        return view('admin.polis.edit', compact('poli'));
     }
 
     public function update(Request $request, $id)
@@ -73,10 +82,8 @@ class PoliController extends Controller
 
         $poli->update($data);
 
-        return response()->json([
-            'message' => 'Poli berhasil diupdate',
-            'poli' => $poli,
-        ]);
+        return redirect()->route('admin.polis.index')
+            ->with('success', 'Poli berhasil diupdate');
     }
 
     public function destroy($id)
@@ -90,8 +97,7 @@ class PoliController extends Controller
         
         $poli->delete();
 
-        return response()->json([
-            'message' => 'Poli berhasil dihapus',
-        ]);
+        return redirect()->route('admin.polis.index')
+            ->with('success', 'Poli berhasil dihapus');
     }
 }

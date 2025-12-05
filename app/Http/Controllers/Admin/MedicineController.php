@@ -14,7 +14,7 @@ class MedicineController extends Controller
         $query = Medicine::query();
 
         // Filter by availability
-        if ($request->has('available')) {
+        if ($request->has('available') && $request->available != '') {
             if ($request->available == 'true') {
                 $query->where('stok', '>', 0);
             } else {
@@ -23,18 +23,23 @@ class MedicineController extends Controller
         }
 
         // Search by name
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search != '') {
             $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
         // Filter by type
-        if ($request->has('tipe')) {
+        if ($request->has('tipe') && $request->tipe != '') {
             $query->where('tipe', $request->tipe);
         }
 
         $medicines = $query->latest()->paginate(15);
 
-        return response()->json($medicines);
+        return view('admin.medicines.index', compact('medicines'));
+    }
+
+    public function create()
+    {
+        return view('admin.medicines.create');
     }
 
     public function store(Request $request)
@@ -59,18 +64,22 @@ class MedicineController extends Controller
             $data['gambar'] = $path;
         }
 
-        $medicine = Medicine::create($data);
+        Medicine::create($data);
 
-        return response()->json([
-            'message' => 'Obat berhasil dibuat',
-            'medicine' => $medicine,
-        ], 201);
+        return redirect()->route('admin.medicines.index')
+            ->with('success', 'Obat berhasil dibuat');
     }
 
     public function show($id)
     {
         $medicine = Medicine::findOrFail($id);
-        return response()->json($medicine);
+        return view('admin.medicines.show', compact('medicine'));
+    }
+
+    public function edit($id)
+    {
+        $medicine = Medicine::findOrFail($id);
+        return view('admin.medicines.edit', compact('medicine'));
     }
 
     public function update(Request $request, $id)
@@ -103,10 +112,8 @@ class MedicineController extends Controller
 
         $medicine->update($data);
 
-        return response()->json([
-            'message' => 'Obat berhasil diupdate',
-            'medicine' => $medicine,
-        ]);
+        return redirect()->route('admin.medicines.index')
+            ->with('success', 'Obat berhasil diupdate');
     }
 
     public function destroy($id)
@@ -120,8 +127,7 @@ class MedicineController extends Controller
         
         $medicine->delete();
 
-        return response()->json([
-            'message' => 'Obat berhasil dihapus',
-        ]);
+        return redirect()->route('admin.medicines.index')
+            ->with('success', 'Obat berhasil dihapus');
     }
 }

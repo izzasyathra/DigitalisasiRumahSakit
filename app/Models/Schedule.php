@@ -9,6 +9,7 @@ class Schedule extends Model
 {
     use HasFactory;
 
+    // Kolom yang boleh diisi
     protected $fillable = [
         'dokter_id',
         'hari',
@@ -16,18 +17,9 @@ class Schedule extends Model
         'durasi',
     ];
 
-    protected $casts = [
-        'jam_mulai' => 'datetime:H:i',
-    ];
-
-    // Relationships
-    public function dokter()
+    // Relasi ke tabel users sebagai dokter
+    public function doctor()
     {
         return $this->belongsTo(User::class, 'dokter_id');
-    }
-
-    public function appointments()
-    {
-        return $this->hasMany(Appointment::class, 'jadwal_id');
     }
 }

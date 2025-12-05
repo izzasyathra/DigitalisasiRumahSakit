@@ -13,10 +13,9 @@ return new class extends Migration
             $table->foreignId('dokter_id')->constrained('users')->onDelete('cascade');
             $table->enum('hari', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']);
             $table->time('jam_mulai');
-            $table->integer('durasi')->default(30); // dalam menit
+            $table->integer('durasi')->default(30);
             $table->timestamps();
             
-            // Ensure no overlapping schedules for same doctor on same day
             $table->unique(['dokter_id', 'hari', 'jam_mulai']);
         });
     }

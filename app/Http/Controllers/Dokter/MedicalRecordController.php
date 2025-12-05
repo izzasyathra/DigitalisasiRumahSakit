@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\Prescription;
+use App\Models\Medicine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MedicalRecordController extends Controller
 {
     // Get approved appointments for today (Antrean Konsultasi)
-    public function getQueue(Request $request)
+    public function queue(Request $request)
     {
         $appointments = Appointment::with(['pasien', 'jadwal'])
             ->where('dokter_id', $request->user()->id)
@@ -20,7 +21,7 @@ class MedicalRecordController extends Controller
             ->whereDate('tanggal_booking', today())
             ->get();
 
-        return response()->json($appointments);
+        return view('dokter.medical-records.queue', compact('appointments'));
     }
 
     // Get all medical records created by this doctor
@@ -30,7 +31,7 @@ class MedicalRecordController extends Controller
             ->where('dokter_id', $request->user()->id);
 
         // Search by patient name
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search != '') {
             $query->whereHas('pasien', function($q) use ($request) {
                 $q->where('username', 'like', '%' . $request->search . '%');
             });
@@ -38,7 +39,25 @@ class MedicalRecordController extends Controller
 
         $records = $query->latest()->paginate(15);
 
-        return response()->json($records);
+        return view('dokter.medical-records.index', compact('records'));
+    }
+
+    public function create(Request $request)
+    {
+        $appointmentId = $request->query('appointment_id');
+        $appointment = null;
+        
+        if ($appointmentId) {
+            $appointment = Appointment::with('pasien')
+                ->where('id', $appointmentId)
+                ->where('dokter_id', auth()->id())
+                ->where('status', 'approved')
+                ->firstOrFail();
+        }
+
+        $medicines = Medicine::where('stok', '>', 0)->get();
+
+        return view('dokter.medical-records.create', compact('appointment', 'medicines'));
     }
 
     // Create medical record with prescriptions
@@ -49,9 +68,10 @@ class MedicalRecordController extends Controller
             'diagnosis' => 'required|string',
             'tindakan' => 'required|string',
             'catatan' => 'nullable|string',
-            'prescriptions' => 'required|array|min:1',
-            'prescriptions.*.medicine_id' => 'required|exists:medicines,id',
-            'prescriptions.*.jumlah' => 'required|integer|min:1',
+            'medicines' => 'required|array|min:1',
+            'medicines.*' => 'required|exists:medicines,id',
+            'quantities' => 'required|array|min:1',
+            'quantities.*' => 'required|integer|min:1',
         ]);
 
         // Verify appointment belongs to this doctor and is approved
@@ -73,11 +93,11 @@ class MedicalRecordController extends Controller
             ]);
 
             // Create prescriptions
-            foreach ($request->prescriptions as $prescription) {
+            foreach ($request->medicines as $index => $medicineId) {
                 Prescription::create([
                     'medical_record_id' => $medicalRecord->id,
-                    'medicine_id' => $prescription['medicine_id'],
-                    'jumlah' => $prescription['jumlah'],
+                    'medicine_id' => $medicineId,
+                    'jumlah' => $request->quantities[$index],
                 ]);
             }
 
@@ -86,17 +106,13 @@ class MedicalRecordController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Rekam medis berhasil dibuat',
-                'medical_record' => $medicalRecord->load('prescriptions.medicine'),
-            ], 201);
+            return redirect()->route('dokter.medical-records.index')
+                ->with('success', 'Rekam medis berhasil dibuat');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Gagal membuat rekam medis',
-                'error' => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Gagal membuat rekam medis: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -106,7 +122,18 @@ class MedicalRecordController extends Controller
             ->where('dokter_id', auth()->id())
             ->findOrFail($id);
 
-        return response()->json($record);
+        return view('dokter.medical-records.show', compact('record'));
+    }
+
+    public function edit($id)
+    {
+        $record = MedicalRecord::with('prescriptions')
+            ->where('dokter_id', auth()->id())
+            ->findOrFail($id);
+
+        $medicines = Medicine::where('stok', '>', 0)->get();
+
+        return view('dokter.medical-records.edit', compact('record', 'medicines'));
     }
 
     public function update(Request $request, $id)
@@ -118,9 +145,10 @@ class MedicalRecordController extends Controller
             'diagnosis' => 'required|string',
             'tindakan' => 'required|string',
             'catatan' => 'nullable|string',
-            'prescriptions' => 'nullable|array',
-            'prescriptions.*.medicine_id' => 'required|exists:medicines,id',
-            'prescriptions.*.jumlah' => 'required|integer|min:1',
+            'medicines' => 'nullable|array',
+            'medicines.*' => 'required|exists:medicines,id',
+            'quantities' => 'nullable|array',
+            'quantities.*' => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
@@ -132,33 +160,29 @@ class MedicalRecordController extends Controller
             ]);
 
             // Update prescriptions if provided
-            if ($request->has('prescriptions')) {
+            if ($request->has('medicines') && is_array($request->medicines)) {
                 // Delete old prescriptions
                 $record->prescriptions()->delete();
 
                 // Create new prescriptions
-                foreach ($request->prescriptions as $prescription) {
+                foreach ($request->medicines as $index => $medicineId) {
                     Prescription::create([
                         'medical_record_id' => $record->id,
-                        'medicine_id' => $prescription['medicine_id'],
-                        'jumlah' => $prescription['jumlah'],
+                        'medicine_id' => $medicineId,
+                        'jumlah' => $request->quantities[$index],
                     ]);
                 }
             }
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Rekam medis berhasil diupdate',
-                'medical_record' => $record->load('prescriptions.medicine'),
-            ]);
+            return redirect()->route('dokter.medical-records.index')
+                ->with('success', 'Rekam medis berhasil diupdate');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Gagal mengupdate rekam medis',
-                'error' => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Gagal mengupdate rekam medis: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -169,8 +193,7 @@ class MedicalRecordController extends Controller
 
         $record->delete();
 
-        return response()->json([
-            'message' => 'Rekam medis berhasil dihapus',
-        ]);
+        return redirect()->route('dokter.medical-records.index')
+            ->with('success', 'Rekam medis berhasil dihapus');
     }
 }
