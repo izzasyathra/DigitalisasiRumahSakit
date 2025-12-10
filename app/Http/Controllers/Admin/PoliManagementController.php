@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 
 class PoliManagementController extends Controller
 {
-    // Get pending appointments (Admin sees all, Dokter sees only theirs)
     public function getPendingAppointments(Request $request)
     {
         $query = Appointment::with(['pasien', 'dokter.poli', 'jadwal'])
@@ -15,7 +14,6 @@ class PoliManagementController extends Controller
 
         $user = $request->user();
 
-        // If dokter, only show their appointments
         if ($user->isDokter()) {
             $query->where('dokter_id', $user->id);
         }

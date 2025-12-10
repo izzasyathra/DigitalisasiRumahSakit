@@ -42,13 +42,12 @@ class MedicineController extends Controller
         return redirect()->route('admin.medicines.index')->with('success', 'Obat berhasil ditambahkan!');
     }
 
-    // 4. Tampilkan Form Edit (INI YANG TADI ERROR/HILANG)
+    // 4. Tampilkan Form Edit 
     public function edit($id)
     {
         // Cari obat berdasarkan ID
         $medicine = Medicine::find($id);
-        
-        // Pilihan untuk dropdown (pastikan Value sama dengan yang di database)
+    
         $types = ['Tablet', 'Sirup', 'Kapsul', 'Salep', 'Suntik', 'Lainnya'];
 
         return view('admin.medicines.edit', compact('medicine', 'types'));

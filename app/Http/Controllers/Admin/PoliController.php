@@ -32,15 +32,13 @@ class PoliController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            // Pastikan unique mengecek kolom 'name'
             'nama_poli' => 'required|string|max:255|unique:polis,name',
             'deskripsi' => 'nullable|string',
         ]);
 
         Poli::create([
-            // Kiri: Nama Kolom Database | Kanan: Nama Input Form HTML
             'name'        => $request->nama_poli, 
-            'description' => $request->deskripsi, // Ganti 'description' sesuai nama kolom DB kamu
+            'description' => $request->deskripsi, 
         ]);
 
         return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil ditambahkan.');
@@ -59,19 +57,14 @@ class PoliController extends Controller
    public function update(Request $request, Poli $poli)
     {
         $request->validate([
-            // PERBAIKAN 1: Validasi Unique
-            // Format: unique:nama_tabel,nama_kolom_database,id_yang_dikecualikan
-            // Kita harus ubah parameter ke-2 menjadi 'name' (sesuai kolom DB)
+           
             'nama_poli' => 'required|string|max:255|unique:polis,name,' . $poli->id,
             'deskripsi' => 'nullable|string',
         ]);
 
-        // PERBAIKAN 2: Mapping Manual
-        // Kita tidak bisa pakai $poli->update($request->all());
-        // Kita harus pasangkan input form ke kolom database secara manual
         $poli->update([
-            'name' => $request->nama_poli,        // Input 'nama_poli' masuk ke kolom 'name'
-            'description' => $request->deskripsi, // Input 'deskripsi' masuk ke kolom 'description'
+            'name' => $request->nama_poli,       
+            'description' => $request->deskripsi, 
         ]);
 
         return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil diperbarui.');

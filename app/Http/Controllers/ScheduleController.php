@@ -16,7 +16,6 @@ class ScheduleController extends Controller
                               ->orderBy('day')
                               ->orderBy('start_time')
                               ->get();
-        // Asumsi: View list jadwal ada di resources/views/dokter/schedule/index.blade.php
         return view('dokter.schedule.index', compact('schedules'));
     }
 
@@ -35,10 +34,8 @@ class ScheduleController extends Controller
         $request->validate([
             'day' => ['required', Rule::in(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'])],
             'start_time' => 'required|date_format:H:i',
-            // Durasi 30 menit akan dihitung di logic Appointment
         ]);
         
-        // Cek Tumpang Tindih (PENTING)
         $exists = Schedule::where('user_id', $doctorId)
                           ->where('day', $request->day)
                           ->where('start_time', $request->start_time)
@@ -57,5 +54,4 @@ class ScheduleController extends Controller
         return redirect()->route('dokter.schedule.index')->with('success', 'Jadwal praktik berhasil ditambahkan.');
     }
 
-    // ... (Tambahkan fungsi edit dan destroy, mirip seperti PoliController)
 }

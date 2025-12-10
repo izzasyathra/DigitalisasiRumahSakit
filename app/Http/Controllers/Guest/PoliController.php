@@ -7,7 +7,6 @@ class PoliController extends Controller
 {
     public function index()
     {
-        // Pastikan nama kolom benar ('name' bukan 'nama_poli')
         $polis = Poli::orderBy('name', 'asc')->get();
         return view('guest.poli', compact('polis'));
     }

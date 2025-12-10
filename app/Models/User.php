@@ -32,7 +32,6 @@ class User extends Authenticatable
         ];
     }
 
-    // --- RELASI TAMBAHAN ---
     
     // Relasi Poli (Jika User adalah Dokter)
     public function poli()
@@ -43,13 +42,13 @@ class User extends Authenticatable
     // Relasi Appointments (Pasien memiliki banyak janji temu)
     public function appointments()
     {
-        return $this->hasMany(Appointment::class, 'patient_id'); // Pasien adalah patient_id
+        return $this->hasMany(Appointment::class, 'patient_id'); 
     }
 
     // Relasi Appointments (Dokter memiliki banyak janji temu)
     public function doctorAppointments()
     {
-        return $this->hasMany(Appointment::class, 'doctor_id'); // Dokter adalah doctor_id
+        return $this->hasMany(Appointment::class, 'doctor_id'); 
     }
 
     public function isDokter()

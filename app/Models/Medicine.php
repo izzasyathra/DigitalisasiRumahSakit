@@ -9,13 +9,12 @@ class Medicine extends Model
 {
     use HasFactory;
 
-    // Pastikan fillable menggunakan nama kolom BAHASA INGGRIS
     protected $fillable = [
         'nama',
         'deskripsi',
         'tipe',
         'stok',
-        'harga', // <--- TAMBAHKAN INI
+        'harga', 
         'gambar',
     ];
        

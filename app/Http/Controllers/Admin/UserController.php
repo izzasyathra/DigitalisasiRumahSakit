@@ -64,7 +64,6 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $polis = Poli::all();
-        // Kita kirim variabel roles agar view lebih rapi (opsional, tapi saya hardcode di view agar cepat)
         return view('admin.users.edit', compact('user', 'polis'));
     }
 
@@ -76,7 +75,6 @@ class UserController extends Controller
         // 1. Validasi
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            // PENTING: Ignore ID user ini saat cek unique email
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => ['required', Rule::in(['admin', 'dokter', 'pasien'])],
@@ -92,7 +90,6 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            // Reset poli jadi null jika bukan dokter
             'poli_id' => ($request->role === 'dokter') ? $request->poli_id : null,
         ];
 

@@ -28,7 +28,7 @@ class ScheduleController extends Controller
             'end_time' => 'required|after:start_time',
         ]);
 
-        // Cek duplikasi hari (menggunakan doctor_id)
+        // Cek duplikasi hari 
         $exists = Schedule::where('doctor_id', Auth::id())
             ->where('day', $request->day)
             ->exists();
@@ -37,7 +37,7 @@ class ScheduleController extends Controller
             return back()->withErrors(['day' => 'Jadwal untuk hari tersebut sudah ada.']);
         }
 
-        // Simpan data (menggunakan doctor_id)
+        // Simpan data 
         Schedule::create([
             'doctor_id' => Auth::id(),
             'day' => $request->day,

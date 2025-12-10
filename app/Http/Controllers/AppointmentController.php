@@ -13,7 +13,7 @@ class AppointmentController extends Controller
     public function index()
     {
         // Ambil janji temu milik dokter yang sedang login DAN statusnya Pending
-        $appointments = Appointment::with(['user', 'schedule']) // Load relasi user & jadwal
+        $appointments = Appointment::with(['user', 'schedule']) 
             ->where('doctor_id', Auth::id())
             ->where('status', 'Pending')
             ->orderBy('tanggal_booking', 'asc')
@@ -27,7 +27,6 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::findOrFail($id);
 
-        // Security check: Pastikan ini pasien dokter tersebut
         if ($appointment->doctor_id != Auth::id()) {
             abort(403);
         }

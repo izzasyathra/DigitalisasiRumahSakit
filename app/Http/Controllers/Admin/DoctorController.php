@@ -47,7 +47,6 @@ class DoctorController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            // Gunakan 'dokter' (bukan 'doctor') agar diterima database
             'role' => 'dokter', 
             'poli_id' => $request->poli_id,
         ]);
@@ -75,7 +74,6 @@ class DoctorController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            // Validasi Unique tapi abaikan email milik dokter ini sendiri
             'email' => ['required', 'email', Rule::unique('users')->ignore($doctor->id)],
             'poli_id' => 'required|exists:polis,id',
             'password' => 'nullable|string|min:8|confirmed',

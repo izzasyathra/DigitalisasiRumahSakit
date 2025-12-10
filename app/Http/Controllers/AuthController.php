@@ -22,7 +22,6 @@ class AuthController extends Controller
 
         // 2. Buat User Baru di Database
         $user = User::create([
-            // Jika di database kolomnya 'username', ganti 'name' di kiri jadi 'username'
             'name' => $request->name, 
             'email' => $request->email,
             'password' => Hash::make($request->password),

@@ -14,7 +14,7 @@ class AppointmentController extends Controller
     {
         $appointments = Appointment::with(['user', 'schedule']) // Load data pasien & jadwal
             ->where('doctor_id', Auth::id())
-            ->where('status', 'Pending') // <--- KUNCI: Hanya ambil yang Pending
+            ->where('status', 'Pending') 
             ->orderBy('tanggal_booking', 'asc')
             ->get();
 
@@ -28,7 +28,7 @@ class AppointmentController extends Controller
 
         if ($appointment->doctor_id != Auth::id()) abort(403);
 
-        $appointment->update(['status' => 'Approved']); // Ubah jadi Approved
+        $appointment->update(['status' => 'Approved']);
 
         return redirect()->back()->with('success', 'Janji temu disetujui. Pasien masuk ke antrean konsultasi.');
     }

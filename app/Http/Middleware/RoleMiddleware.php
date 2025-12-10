@@ -14,7 +14,6 @@ class RoleMiddleware
         return redirect('/login');
     }
 
-    // buat array roles (misal: "admin|dokter")
     $allowedRoles = explode('|', $roles);
 
     if (!in_array(Auth::user()->role, $allowedRoles)) {

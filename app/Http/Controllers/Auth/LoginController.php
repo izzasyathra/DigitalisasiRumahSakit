@@ -15,7 +15,6 @@ class LoginController extends Controller
     }
 
     // Proses Logika Login (POST)
-    // Proses Logika Login (POST)
     public function login(Request $request)
     {
         // 1. Validasi Input
@@ -29,8 +28,6 @@ class LoginController extends Controller
             
             $request->session()->regenerate();
             $user = Auth::user(); 
-
-            // --- LOGIKA PENGALIHAN (REDIRECT) ---
             
             // ADMIN
             if ($user->role === 'admin') {
@@ -42,8 +39,6 @@ class LoginController extends Controller
                 return redirect()->intended('/doctor/dashboard');
             }
             
-            // PASIEN (PERBAIKAN DI SINI)
-            // Tambahkan '/patient' di depannya
             elseif ($user->role === 'pasien'){
                 return redirect()->intended('/patient/dashboard'); 
             }

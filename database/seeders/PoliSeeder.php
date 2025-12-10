@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Poli; // Pastikan Anda mengimport Model Poli
+use App\Models\Poli; 
 
 class PoliSeeder extends Seeder
 {

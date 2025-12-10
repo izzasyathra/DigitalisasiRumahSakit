@@ -17,11 +17,11 @@ class Doctor extends Model
         'nama_dokter',
         'spesialisasi',
         'poli_id',
-        'no_hp', // Tambahkan jika ada di DB, jika tidak hapus baris ini
-        'alamat' // Tambahkan jika ada di DB, jika tidak hapus baris ini
+        'no_hp',
+        'alamat' 
     ];
 
-    // Relasi ke Poli (Opsional, tapi bagus untuk kerapian)
+    // Relasi ke Poli 
     public function poli()
     {
         return $this->belongsTo(Poli::class, 'poli_id', 'id');

@@ -9,7 +9,6 @@ class ValidationController extends Controller
 {
     public function index()
     {
-        // Masalahnya ada di bagian SELECT di bawah ini
         $appointments = DB::table('appointments')
             ->join('users', 'appointments.patient_id', '=', 'users.id')
             ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
@@ -19,8 +18,6 @@ class ValidationController extends Controller
                 'users.name as nama_pasien',
                 'doctors.nama_dokter',
                 
-                // PERBAIKAN: Ganti 'polis.nama_poli' menjadi 'polis.name as nama_poli'
-                // Karena di database kolomnya bernama 'name'
                 'polis.name as nama_poli' 
             )
             ->orderBy('appointments.created_at', 'desc')

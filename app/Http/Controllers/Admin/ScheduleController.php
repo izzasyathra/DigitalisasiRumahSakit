@@ -15,8 +15,7 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        // Ambil semua jadwal, urutkan berdasarkan hari (custom sort jika perlu)
-        $schedules = Schedule::with('user.poli') // Load Dokter dan Poli Dokter
+        $schedules = Schedule::with('user.poli') 
                                ->orderBy('day', 'asc')
                                ->paginate(15);
                                
@@ -30,7 +29,6 @@ class ScheduleController extends Controller
      */
     public function create()
     {
-        // Hanya ambil user dengan role 'dokter'
         $doctors = User::where('role', 'dokter')->with('poli')->get();
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
         
@@ -53,7 +51,6 @@ class ScheduleController extends Controller
             'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
         
-        // Cek duplikasi jadwal untuk user_id dan day yang sama
         $isDuplicate = Schedule::where('user_id', $validated['user_id'])
                                ->where('day', $validated['day'])
                                ->exists();
@@ -90,10 +87,9 @@ class ScheduleController extends Controller
             'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
         
-        // Cek duplikasi jadwal, kecuali jadwal yang sedang diedit
         $isDuplicate = Schedule::where('user_id', $validated['user_id'])
                                ->where('day', $validated['day'])
-                               ->where('id', '!=', $schedule->id) // Abaikan ID saat ini
+                               ->where('id', '!=', $schedule->id) 
                                ->exists();
                                
         if ($isDuplicate) {

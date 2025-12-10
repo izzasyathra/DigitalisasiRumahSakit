@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckUserRole // Pastikan nama class ini sesuai dengan nama file
+class CheckUserRole 
 {
     /**
      * Handle an incoming request.
@@ -18,7 +18,6 @@ class CheckUserRole // Pastikan nama class ini sesuai dengan nama file
     {
         // 1. Cek apakah pengguna sudah login
         if (!Auth::check()) {
-            // Jika belum login, redirect ke halaman login
             return redirect('/login');
         }
 
@@ -27,8 +26,6 @@ class CheckUserRole // Pastikan nama class ini sesuai dengan nama file
         // 2. Cek apakah peran pengguna sesuai dengan peran yang diminta di route
         if ($user->role !== $role) {
             
-            // Akses ditolak. Arahkan pengguna ke dashboard yang sesuai dengan peran mereka.
-            // Ini untuk mencegah pengguna Dokter mengakses rute Admin, dan sebaliknya.
             
             if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard');
@@ -38,7 +35,6 @@ class CheckUserRole // Pastikan nama class ini sesuai dengan nama file
                 return redirect()->route('patient.dashboard');
             }
             
-            // Fallback ke login jika role tidak teridentifikasi
             return redirect('/login')->withErrors('Akses ditolak. Peran pengguna tidak valid.');
         }
 

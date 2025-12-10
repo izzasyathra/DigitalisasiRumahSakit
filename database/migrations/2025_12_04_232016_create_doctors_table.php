@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('doctors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('poli_id')->constrained('polis')->onDelete('cascade'); // Relasi ke tabel 'polis'
+            $table->foreignId('poli_id')->constrained('polis')->onDelete('cascade'); 
             $table->string('nama_dokter');
-            $table->string('spesialisasi'); // Contoh: Dokter Umum, Dokter Gigi, dll.
+            $table->string('spesialisasi'); 
             $table->text('deskripsi_singkat')->nullable();
             $table->string('foto')->nullable();
             $table->timestamps();

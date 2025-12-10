@@ -11,7 +11,6 @@ class PoliController extends Controller
     public function index()
     {
         $polis = Poli::orderBy('name')->get();
-        // Asumsi: View list Poli ada di resources/views/admin/poli/index.blade.php
         return view('admin.poli.index', compact('polis'));
     }
 
@@ -58,7 +57,6 @@ class PoliController extends Controller
     // DELETE: Menghapus Poli
     public function destroy(Poli $poli)
     {
-        // Peringatan: Hapus relasi Dokter terlebih dahulu atau set poli_id Dokter menjadi null
         $poli->doctors()->update(['poli_id' => null]); 
         $poli->delete();
 

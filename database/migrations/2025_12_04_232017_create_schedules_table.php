@@ -9,12 +9,11 @@ return new class extends Migration
 {
     Schema::create('schedules', function (Blueprint $table) {
         $table->id();
-        // Relasi ke tabel users (dokter)
         $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
         
         $table->string('day'); // Senin, Selasa, dst
         $table->time('start_time');
-        $table->time('end_time'); // Akan otomatis dihitung (+30 menit)
+        $table->time('end_time'); 
         $table->timestamps();
     });
 }

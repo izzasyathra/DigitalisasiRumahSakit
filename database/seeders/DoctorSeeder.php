@@ -10,7 +10,6 @@ class DoctorSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil ID Poli yang sudah ada
         $poliUmum = Poli::where('nama_poli', 'Poli Umum')->first();
         $poliGigi = Poli::where('nama_poli', 'Poli Gigi')->first();
         $poliAnak = Poli::where('nama_poli', 'Poli Anak')->first();

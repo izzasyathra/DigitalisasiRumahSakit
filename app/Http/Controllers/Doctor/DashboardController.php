@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $doctorId = Auth::id();
 
-        // 1. Total Pasien (Mengambil jumlah user dengan role pasien)
+        // 1. Total Pasien 
         $totalPasien = User::where('role', 'pasien')->count();
 
         // 2. Menunggu Antrean (Janji temu status 'Approved' hari ini yang siap diperiksa)

@@ -7,9 +7,8 @@ class ScheduleController extends Controller
 {
     public function index()
     {
-        // Ambil jadwal beserta data dokter dan polinya
         $schedules = Schedule::with(['doctor', 'doctor.poli'])
-                    ->orderBy('day', 'desc') // Atau urutkan sesuai kebutuhan
+                    ->orderBy('day', 'desc') 
                     ->get();
 
         return view('guest.schedules', compact('schedules'));

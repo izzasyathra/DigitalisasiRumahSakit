@@ -15,7 +15,7 @@ class AdminSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'admin@digitalrs.com', // <-- Gunakan Email ini untuk Login
             'password' => Hash::make('password'), // <-- Password: password
-            'role' => 'admin', // <-- Pastikan kolom ini ada di tabel users
+            'role' => 'admin', 
         ]);
     }
 }

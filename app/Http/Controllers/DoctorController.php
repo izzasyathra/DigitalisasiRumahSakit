@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers; // Sesuaikan jika ada di folder Admin (misal: App\Http\Controllers\Admin)
+namespace App\Http\Controllers; 
 
 use Illuminate\Http\Request;
 use App\Models\Doctor;
@@ -11,8 +11,6 @@ class DoctorController extends Controller
     // 1. Tampilkan Daftar Dokter
     public function index()
     {
-        // Kita gunakan JOIN agar bisa mengambil nama poli (bukan cuma ID poli)
-        // Ingat: kolom di tabel poli namanya 'name', kita alias-kan jadi 'nama_poli'
         $doctors = DB::table('doctors')
             ->join('polis', 'doctors.poli_id', '=', 'polis.id')
             ->select('doctors.*', 'polis.name as nama_poli') 
@@ -36,7 +34,7 @@ class DoctorController extends Controller
         $request->validate([
             'nama_dokter' => 'required|string|max:255',
             'spesialisasi' => 'required|string',
-            'poli_id' => 'required|exists:polis,id', // Pastikan ID poli ada di tabel polis
+            'poli_id' => 'required|exists:polis,id', 
         ]);
 
         Doctor::create([

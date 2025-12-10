@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MedicalRecord;
 use App\Models\Appointment;
 use App\Models\Medicine;
-use App\Models\User; // Tambahan: Import model User
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +19,9 @@ class MedicalRecordController extends Controller
      */
     public function index()
     {
-        // Dokter hanya melihat janji temu yang ditujukan kepadanya dan statusnya 'Approved' untuk hari ini
         $queueAppointments = Appointment::where('doctor_id', auth()->id())
                                         ->where('status', 'Approved')
-                                        ->whereDate('tanggal_booking', Carbon::today()) // Gunakan whereDate untuk perbandingan tanggal aman
+                                        ->whereDate('tanggal_booking', Carbon::today()) 
                                         ->with('patient', 'schedule')
                                         ->orderBy('schedule_id')
                                         ->get();
@@ -39,7 +38,6 @@ class MedicalRecordController extends Controller
         $appointment = Appointment::with('patient', 'doctor')->findOrFail($appointment_id);
 
         // 2. Tampilkan view form pemeriksaan & kirim data appointment
-        // CATATAN: Pastikan nama folder view konsisten (medical_records vs medical-records)
         return view('doctor.medical_records.create', compact('appointment'));
     }
 
@@ -73,17 +71,15 @@ class MedicalRecordController extends Controller
         return redirect()->route('doctor.dashboard')->with('success', 
             'Pemeriksaan untuk pasien ' . $appointment->patient->name . ' telah berhasil disimpan.'
         );
-    } // <--- BAGIAN INI HILANG SEBELUMNYA (Kurung kurawal penutup method store)
+    } 
 
     public function showPatientHistory($patientId)
     {
         $patient = User::findOrFail($patientId);
         
-        // Ambil semua MR pasien ini
         $medicalRecords = MedicalRecord::where('patient_id', $patientId)
-                                       // Pastikan relasi 'prescriptions' ada di model MedicalRecord jika menggunakan with() ini
-                                       // ->with('prescriptions.medicine') 
-                                       ->orderBy('created_at', 'desc') // Biasanya sorting berdasarkan created_at jika tidak ada kolom tanggal_berobat
+                                       
+                                       ->orderBy('created_at', 'desc') 
                                        ->get();
                                        
         return view('doctor.medical_records.history', compact('patient', 'medicalRecords'));

@@ -23,19 +23,18 @@ class AppointmentController extends Controller
         $appointments = DB::table('appointments')
             ->join('users', 'appointments.doctor_id', '=', 'users.id')
             ->leftJoin('schedules', 'appointments.schedule_id', '=', 'schedules.id')
-            ->leftJoin('polis', 'users.poli_id', '=', 'polis.id') // Join ke poli biar nama poli muncul
+            ->leftJoin('polis', 'users.poli_id', '=', 'polis.id')
             ->select(
                 'appointments.*', 
                 'users.name as doctor_name', 
-                'polis.name as poli_name', // Ambil nama poli
+                'polis.name as poli_name', 
                 'schedules.start_time', 
                 'schedules.end_time'
             )
             ->where('appointments.patient_id', Auth::id())
             ->orderBy('appointments.tanggal_booking', 'desc')
-            ->paginate(5); // Gunakan paginate agar rapi jika datanya banyak
+            ->paginate(5); 
 
-        // PERBAIKAN DI SINI: Arahkan ke 'patient.dashboard' (Bukan 'patient.appointments.index')
         return view('patient.dashboard', compact('appointments'));
     }
 
@@ -45,7 +44,6 @@ class AppointmentController extends Controller
     public function create()
     {
         $polis = Poli::all();
-        // Ambil dokter yang punya jadwal saja agar data valid
         $doctors = User::where('role', 'dokter')->get();
 
         return view('patient.appointments.create', compact('polis', 'doctors'));
@@ -59,7 +57,7 @@ class AppointmentController extends Controller
         $request->validate([
             'poli_id' => 'required',
             'doctor_id' => 'required',
-            'appointment_date' => 'required|date|after_or_equal:today', // Ubah ke after_or_equal agar bisa booking hari ini
+            'appointment_date' => 'required|date|after_or_equal:today', 
             'complaint' => 'required|string|max:255',
         ]);
 
@@ -147,10 +145,9 @@ class AppointmentController extends Controller
      */
     public function getDoctorsByPoli($poliId)
     {
-        // Pastikan kolom poli_id ada di tabel users
         $doctors = User::where('role', 'dokter')
                        ->where('poli_id', $poliId)
-                       ->select('id', 'name', 'email') // Ambil field yang perlu saja
+                       ->select('id', 'name', 'email') 
                        ->get();
                        
         return response()->json($doctors);

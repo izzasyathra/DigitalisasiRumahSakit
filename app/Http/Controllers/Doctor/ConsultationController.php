@@ -17,7 +17,6 @@ class ConsultationController extends Controller
      */
     public function index()
     {
-        // Ambil janji temu yang statusnya 'Approved' milik dokter yang sedang login
         $appointments = Appointment::with('patient', 'schedule')
             ->where('doctor_id', Auth::id())
             ->where('status', 'Approved')
@@ -81,11 +80,11 @@ class ConsultationController extends Controller
             // A. Buat Rekam Medis
             $record = MedicalRecord::create([
                 'appointment_id' => $appointment->id,
-                'patient_id' => $appointment->patient_id ?? $appointment->user_id, // Sesuaikan dengan kolom di tabel Appointment Anda
+                'patient_id' => $appointment->patient_id ?? $appointment->user_id, 
                 'doctor_id' => Auth::id(),
                 'diagnosis' => $request->diagnosis,
-                'tindakan' => $request->tindakan, // Pastikan kolom ini ada di migration MedicalRecord
-                'catatan' => $request->catatan,   // Pastikan kolom ini ada di migration MedicalRecord
+                'tindakan' => $request->tindakan, 
+                'catatan' => $request->catatan,   
                 'tanggal_berobat' => now(),
             ]);
 
@@ -94,8 +93,6 @@ class ConsultationController extends Controller
                 foreach ($request->medicines as $index => $medicine_id) {
                     $qty = $request->quantities[$index];
 
-                    // Simpan ke Pivot Table (medical_record_medicine)
-                    // Pastikan model MedicalRecord punya fungsi: public function medicines() { return $this->belongsToMany(...); }
                     $record->medicines()->attach($medicine_id, ['quantity' => $qty]);
 
                     // Kurangi Stok Real
@@ -104,7 +101,7 @@ class ConsultationController extends Controller
             }
 
             // C. Ubah Status Janji Temu jadi 'Selesai'
-            $appointment->update(['status' => 'Selesai']); // Atau 'Completed' sesuai enum database
+            $appointment->update(['status' => 'Selesai']); 
         });
 
         return redirect()->route('doctor.consultation.index')

@@ -19,15 +19,12 @@ class DashboardRedirector
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'dokter') {
-                // Asumsi dokter.dashboard dan route-nya sudah dibuat
                 return redirect()->route('doctor.dashboard');
             } elseif ($user->role === 'pasien') {
-                // Masalah utama: Jika route ini tidak ditemukan, sistem crash/gagal.
                 return redirect()->route('patient.dashboard');
             }
         }
         
-        // Lanjutkan ke halaman yang diminta (misalnya, homepage guest)
         return $next($request);
     }
 }

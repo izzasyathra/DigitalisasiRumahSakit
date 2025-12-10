@@ -13,11 +13,8 @@ return new class extends Migration
         $table->string('name');
         $table->string('email')->unique();
         $table->string('password');
-        $table->enum('role', ['admin', 'dokter', 'pasien']); // Pastikan enum role ada
-        
-        // Tambahkan ini untuk Dokter:
+        $table->enum('role', ['admin', 'dokter', 'pasien']); 
         $table->foreignId('poli_id')->nullable()->constrained('polis')->onDelete('set null');
-        
         $table->timestamps();
     });
 
