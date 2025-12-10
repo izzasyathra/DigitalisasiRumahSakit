@@ -7,120 +7,115 @@ use App\Models\User;
 use App\Models\Poli;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Menampilkan daftar semua pengguna.
+     */
+    public function index()
     {
-        $query = User::with('poli');
-
-        // Filter by role
-        if ($request->has('role') && $request->role != '') {
-            $query->where('role', $request->role);
-        }
-
-        // Search by username or email
-        if ($request->has('search') && $request->search != '') {
-            $query->where(function($q) use ($request) {
-                $q->where('username', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $users = $query->latest()->paginate(10);
-
+        $users = User::with('poli')->orderBy('role', 'asc')->paginate(15);
         return view('admin.users.index', compact('users'));
     }
 
+    /**
+     * Menampilkan form create.
+     */
     public function create()
     {
         $polis = Poli::all();
         return view('admin.users.create', compact('polis'));
     }
 
+    /**
+     * Menyimpan user baru.
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'username' => 'required|string|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'role' => 'required|in:admin,dokter,pasien',
-            'poli_id' => 'required_if:role,dokter|nullable|exists:polis,id',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'birth_date' => 'nullable|date',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => ['required', Rule::in(['admin', 'dokter', 'pasien'])],
+            // Wajib isi Poli jika role adalah dokter
+            'poli_id' => [
+                'nullable', 
+                'exists:polis,id',
+                Rule::requiredIf($request->role === 'dokter')
+            ],
         ]);
 
         User::create([
-            'username' => $request->username,
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'poli_id' => $request->role === 'dokter' ? $request->poli_id : null,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'birth_date' => $request->birth_date,
+            'poli_id' => ($request->role === 'dokter') ? $request->poli_id : null,
         ]);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dibuat');
+        return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil ditambahkan.');
     }
 
-    public function show($id)
+    /**
+     * Menampilkan form edit.
+     */
+    public function edit(User $user)
     {
-        $user = User::with('poli')->findOrFail($id);
-        return view('admin.users.show', compact('user'));
-    }
-
-    public function edit($id)
-    {
-        $user = User::findOrFail($id);
         $polis = Poli::all();
+        // Kita kirim variabel roles agar view lebih rapi (opsional, tapi saya hardcode di view agar cepat)
         return view('admin.users.edit', compact('user', 'polis'));
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update data user.
+     */
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
-
-        $request->validate([
-            'username' => 'required|string|unique:users,username,' . $id,
-            'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
-            'role' => 'required|in:admin,dokter,pasien',
-            'poli_id' => 'required_if:role,dokter|nullable|exists:polis,id',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'birth_date' => 'nullable|date',
+        // 1. Validasi
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            // PENTING: Ignore ID user ini saat cek unique email
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'role' => ['required', Rule::in(['admin', 'dokter', 'pasien'])],
+            'poli_id' => [
+                'nullable', 
+                'exists:polis,id',
+                Rule::requiredIf($request->role === 'dokter')
+            ],
         ]);
 
-        $user->update([
-            'username' => $request->username,
+        // 2. Siapkan Data
+        $data = [
+            'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password ? Hash::make($request->password) : $user->password,
             'role' => $request->role,
-            'poli_id' => $request->role === 'dokter' ? $request->poli_id : null,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'birth_date' => $request->birth_date,
-        ]);
+            // Reset poli jadi null jika bukan dokter
+            'poli_id' => ($request->role === 'dokter') ? $request->poli_id : null,
+        ];
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil diupdate');
+        // 3. Update Password hanya jika diisi
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        // 4. Eksekusi Update
+        $user->update($data);
+
+        return redirect()->route('admin.users.index')->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    /**
+     * Hapus user.
+     */
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
-        
-        // Prevent deleting own account
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak dapat menghapus akun sendiri');
+            return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
         }
-        
         $user->delete();
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dihapus');
+        return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil dihapus.');
     }
 }

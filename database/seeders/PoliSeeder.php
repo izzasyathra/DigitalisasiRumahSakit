@@ -2,29 +2,30 @@
 
 namespace Database\Seeders;
 
-use App\Models\Poli; 
 use Illuminate\Database\Seeder;
+use App\Models\Poli; // Pastikan Anda mengimport Model Poli
 
 class PoliSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+
         Poli::create([
-            'name' => 'Poli Umum',
-            'description' => 'Pelayanan kesehatan umum dan dasar.',
+            'nama_poli' => 'Poli Umum',
+            'deskripsi' => 'Layanan kesehatan untuk penyakit umum dan pencegahan.',
+            'ikon_gambar' => null,
         ]);
-        
+
         Poli::create([
-            'name' => 'Poli Anak',
-            'description' => 'Spesialisasi kesehatan anak dan tumbuh kembang.',
+            'nama_poli' => 'Poli Gigi',
+            'deskripsi' => 'Perawatan dan pengobatan masalah gigi serta mulut.',
+            'ikon_gambar' => null,
         ]);
-        
+
         Poli::create([
-            'name' => 'Poli Gigi',
-            'description' => 'Perawatan dan pengobatan gigi serta mulut.',
+            'nama_poli' => 'Poli Anak',
+            'deskripsi' => 'Fokus pada kesehatan dan perkembangan pasien anak.',
+            'ikon_gambar' => null,
         ]);
     }
 }

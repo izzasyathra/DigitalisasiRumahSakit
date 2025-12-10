@@ -8,34 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 class MedicalRecord extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'appointment_id',
-        'pasien_id',
-        'dokter_id',
+        'patient_id', // <--- Pastikan ini ada, bukan user_id
+        'doctor_id',
         'diagnosis',
         'tindakan',
         'catatan',
+        'tanggal_berobat',
     ];
-
-    // Relationships
-    public function appointment()
-    {
-        return $this->belongsTo(Appointment::class);
-    }
-
-    public function pasien()
-    {
-        return $this->belongsTo(User::class, 'pasien_id');
-    }
-
-    public function dokter()
-    {
-        return $this->belongsTo(User::class, 'dokter_id');
-    }
-
-    public function prescriptions()
-    {
-        return $this->hasMany(Prescription::class);
-    }
+    public function doctor() { return $this->belongsTo(User::class, 'doctor_id'); }
+    public function patient() { return $this->belongsTo(User::class, 'patient_id'); }
+    public function appointment() { return $this->belongsTo(Appointment::class, 'appointment_id'); }
+    public function medicines()
+{
+    return $this->belongsToMany(Medicine::class, 'medical_record_medicine')
+                ->withPivot('quantity')
+                ->withTimestamps();
+}
+    // Relasi ke Resep (One to Many)
+    public function prescriptions() { return $this->hasMany(Prescription::class); }
 }

@@ -5,99 +5,84 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Poli;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PoliController extends Controller
 {
+    /**
+     * Menampilkan daftar semua Poli (List Poli).
+     */
     public function index()
-    {
-        $polis = Poli::withCount('dokters')->latest()->get();
-        return view('admin.polis.index', compact('polis'));
-    }
+{
+    // Ganti 'name' dengan nama kolom yang kamu temukan tadi!
+    $polis = Poli::orderBy('name', 'asc')->paginate(10);
+    return view('admin.poli.index', compact('polis'));
+}
 
+    /**
+     * Menampilkan formulir pembuatan Poli (Create Poli).
+     */
     public function create()
     {
-        return view('admin.polis.create');
+        return view('admin.poli.create');
     }
 
+    /**
+     * Menyimpan data Poli baru (Create Poli).
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|unique:polis',
+            // Pastikan unique mengecek kolom 'name'
+            'nama_poli' => 'required|string|max:255|unique:polis,name',
             'deskripsi' => 'nullable|string',
-            'icon' => 'nullable|image|max:2048',
         ]);
 
-        $data = [
-            'nama' => $request->nama,
-            'deskripsi' => $request->deskripsi,
-        ];
+        Poli::create([
+            // Kiri: Nama Kolom Database | Kanan: Nama Input Form HTML
+            'name'        => $request->nama_poli, 
+            'description' => $request->deskripsi, // Ganti 'description' sesuai nama kolom DB kamu
+        ]);
 
-        if ($request->hasFile('icon')) {
-            $path = $request->file('icon')->store('polis', 'public');
-            $data['icon'] = $path;
-        }
-
-        Poli::create($data);
-
-        return redirect()->route('admin.polis.index')
-            ->with('success', 'Poli berhasil dibuat');
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil ditambahkan.');
+    }
+    /**
+     * Menampilkan formulir edit Poli.
+     */
+    public function edit(Poli $poli)
+    {
+        return view('admin.poli.edit', compact('poli'));
     }
 
-    public function show($id)
+    /**
+     * Memperbarui data Poli (Edit Poli).
+     */
+   public function update(Request $request, Poli $poli)
     {
-        $poli = Poli::with('dokters')->findOrFail($id);
-        return view('admin.polis.show', compact('poli'));
-    }
-
-    public function edit($id)
-    {
-        $poli = Poli::findOrFail($id);
-        return view('admin.polis.edit', compact('poli'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $poli = Poli::findOrFail($id);
-
         $request->validate([
-            'nama' => 'required|string|unique:polis,nama,' . $id,
+            // PERBAIKAN 1: Validasi Unique
+            // Format: unique:nama_tabel,nama_kolom_database,id_yang_dikecualikan
+            // Kita harus ubah parameter ke-2 menjadi 'name' (sesuai kolom DB)
+            'nama_poli' => 'required|string|max:255|unique:polis,name,' . $poli->id,
             'deskripsi' => 'nullable|string',
-            'icon' => 'nullable|image|max:2048',
         ]);
 
-        $data = [
-            'nama' => $request->nama,
-            'deskripsi' => $request->deskripsi,
-        ];
+        // PERBAIKAN 2: Mapping Manual
+        // Kita tidak bisa pakai $poli->update($request->all());
+        // Kita harus pasangkan input form ke kolom database secara manual
+        $poli->update([
+            'name' => $request->nama_poli,        // Input 'nama_poli' masuk ke kolom 'name'
+            'description' => $request->deskripsi, // Input 'deskripsi' masuk ke kolom 'description'
+        ]);
 
-        if ($request->hasFile('icon')) {
-            // Delete old icon
-            if ($poli->icon) {
-                Storage::disk('public')->delete($poli->icon);
-            }
-            $path = $request->file('icon')->store('polis', 'public');
-            $data['icon'] = $path;
-        }
-
-        $poli->update($data);
-
-        return redirect()->route('admin.polis.index')
-            ->with('success', 'Poli berhasil diupdate');
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    /**
+     * Menghapus Poli (Delete Poli).
+     */
+    public function destroy(Poli $poli)
     {
-        $poli = Poli::findOrFail($id);
-        
-        // Delete icon if exists
-        if ($poli->icon) {
-            Storage::disk('public')->delete($poli->icon);
-        }
-        
         $poli->delete();
-
-        return redirect()->route('admin.polis.index')
-            ->with('success', 'Poli berhasil dihapus');
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil dihapus.');
     }
 }

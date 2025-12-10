@@ -9,17 +9,14 @@ class Schedule extends Model
 {
     use HasFactory;
 
-    // Kolom yang boleh diisi
-    protected $fillable = [
-        'dokter_id',
-        'hari',
-        'jam_mulai',
-        'durasi',
-    ];
+    protected $guarded = [];
 
-    // Relasi ke tabel users sebagai dokter
+    /**
+     * Relasi: Jadwal milik seorang Dokter (User).
+     */
     public function doctor()
     {
-        return $this->belongsTo(User::class, 'dokter_id');
+        // Menghubungkan kolom 'doctor_id' di tabel schedules ke id di tabel users
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 }

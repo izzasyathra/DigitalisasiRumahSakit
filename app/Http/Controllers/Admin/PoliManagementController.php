@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 
-class AppointmentManagementController extends Controller
+class PoliManagementController extends Controller
 {
     // Get pending appointments (Admin sees all, Dokter sees only theirs)
     public function getPendingAppointments(Request $request)

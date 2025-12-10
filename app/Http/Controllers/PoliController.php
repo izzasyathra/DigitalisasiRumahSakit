@@ -3,78 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Poli;
-use App\Models\User;
 use Illuminate\Http\Request;
 
-class PublicController extends Controller
+class PoliController extends Controller
 {
-    // Home page
+    // READ: Menampilkan daftar Poli
     public function index()
     {
-        $polis = Poli::withCount('dokters')->take(6)->get();
-        $dokters = User::with('poli')
-            ->where('role', 'dokter')
-            ->take(6)
-            ->get();
-
-        // Untuk guest, tidak ada approvedAppointments
-        $approvedAppointments = collect();
-
-        return view('public.home', compact('polis', 'dokters', 'approvedAppointments'));
+        $polis = Poli::orderBy('name')->get();
+        // Asumsi: View list Poli ada di resources/views/admin/poli/index.blade.php
+        return view('admin.poli.index', compact('polis'));
     }
 
-    // Get all polis
-    public function polis()
+    // CREATE: Menampilkan form tambah Poli
+    public function create()
     {
-        $polis = Poli::withCount('dokters')->get();
-        return view('public.polis', compact('polis'));
+        return view('admin.poli.create');
     }
 
-    // Get poli details - INI YANG DIPERBAIKI
-    public function poliDetail($id)
+    // CREATE: Menyimpan data Poli baru
+    public function store(Request $request)
     {
-        // Cari poli berdasarkan ID
-        $poli = Poli::findOrFail($id);
+        $request->validate([
+            'name' => 'required|unique:polis,name',
+            'description' => 'nullable',
+            'icon_path' => 'nullable|string',
+        ]);
 
-        // Ambil dokter yang terkait dengan poli ini
-        $dokters = User::where('role', 'dokter')
-                       ->where('poli_id', $id)
-                       ->with('schedules')
-                       ->get();
+        Poli::create($request->all());
 
-        // Kirim kedua variable ke view
-        return view('public.poli-detail', compact('poli', 'dokters'));
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil ditambahkan!');
     }
 
-    // Get all doctors
-    public function dokters(Request $request)
+    // EDIT: Menampilkan form edit Poli
+    public function edit(Poli $poli)
     {
-        $query = User::with(['poli', 'schedules'])
-            ->where('role', 'dokter');
-
-        // Filter by poli
-        if ($request->has('poli_id') && $request->poli_id != '') {
-            $query->where('poli_id', $request->poli_id);
-        }
-
-        // Search by name
-        if ($request->has('search') && $request->search != '') {
-            $query->where('username', 'like', '%' . $request->search . '%');
-        }
-
-        $dokters = $query->get();
-        $polis = Poli::all(); // For filter
-
-        return view('public.dokters', compact('dokters', 'polis'));
+        return view('admin.poli.edit', compact('poli'));
     }
 
-    // Get doctor detail with schedules
-    public function dokterDetail($id)
+    // UPDATE: Memperbarui data Poli
+    public function update(Request $request, Poli $poli)
     {
-        $dokter = User::with(['poli', 'schedules'])
-            ->where('role', 'dokter')
-            ->findOrFail($id);
+        $request->validate([
+            'name' => 'required|unique:polis,name,' . $poli->id,
+            'description' => 'nullable',
+            'icon_path' => 'nullable|string',
+        ]);
 
-        return view('public.dokter-detail', compact('dokter'));
+        $poli->update($request->all());
+
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil diperbarui!');
+    }
+
+    // DELETE: Menghapus Poli
+    public function destroy(Poli $poli)
+    {
+        // Peringatan: Hapus relasi Dokter terlebih dahulu atau set poli_id Dokter menjadi null
+        $poli->doctors()->update(['poli_id' => null]); 
+        $poli->delete();
+
+        return redirect()->route('admin.poli.index')->with('success', 'Poli berhasil dihapus.');
     }
 }

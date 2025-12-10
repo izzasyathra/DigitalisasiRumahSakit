@@ -1,28 +1,616 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.bg-gradient-modern {
-    background-image: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #6366f1 100%);
+/* Palet Warna Biru */
+:root {
+    --primary-color: #4a90e2; /* Biru Nyaman */
+    --primary-dark: #007bff;
+    --secondary-color: #6c757d;
+    --background-light: #f8f9fa;
+    --text-color: #343a40;
+    --white-color: #ffffff;
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* 2. Styling untuk Card Login/Register */
-.card-glass {
-    background: rgba(255, 255, 255, 0.1); /* Sedikit transparan */
-    backdrop-filter: blur(10px); /* Efek blur (glassmorphism) */
-    -webkit-backdrop-filter: blur(10px);
+/* Reset dan Tipografi Dasar */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--background-light);
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--primary-dark);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section {
+    padding: 60px 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 2.2em;
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+/* Tombol Dasar */
+.btn-primary, .btn-secondary, .btn-cta {
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: background-color 0.3s, color 0.3s;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.btn-primary, .btn-cta {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+}
+
+.btn-primary:hover, .btn-cta:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+}
+
+/* === 1. HEADER / NAVBAR === */
+#navbar {
+    background-color: var(--white-color);
+    box-shadow: var(--shadow-light);
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+}
+
+.logo i {
+    margin-right: 10px;
+    color: var(--primary-color);
+}
+
+.nav-links a {
+    margin-left: 25px;
+    font-weight: 500;
+    color: var(--text-color);
+    padding: 5px 0;
+}
+
+.nav-links a.active {
+    color: var(--primary-dark);
+    border-bottom: 2px solid var(--primary-dark);
+}
+
+.nav-links .btn-primary {
+    margin-left: 30px;
+    padding: 8px 20px;
+    font-size: 0.9em;
+}
+
+.menu-toggle {
+    display: none; /* Sembunyikan di desktop */
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+/* === 2. HERO SECTION === */
+#hero-section {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--white-color);
+    text-align: center;
+    padding: 100px 20px;
+    height: 60vh; /* Tinggi yang nyaman */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 800px;
+}
+
+.hero-content h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.hero-content p {
+    font-size: 1.2em;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+
+.hero-content .btn-cta {
+    margin-right: 15px;
+    font-size: 1.1em;
+    background-color: var(--white-color);
+    color: var(--primary-dark);
+}
+
+.hero-content .btn-cta:hover {
+    background-color: #e2e6ea;
+}
+
+.hero-content .btn-secondary {
+    border-color: var(--white-color);
+    color: var(--white-color);
+}
+
+.hero-content .btn-secondary:hover {
+    background-color: var(--white-color);
+    color: var(--primary-dark);
+}
+
+/* === 3. FEATURE SECTION === */
+#feature-section {
+    background-color: var(--white-color);
+    text-align: center;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.feature-item {
+    padding: 30px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-light);
+    background-color: var(--background-light);
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
-/* 3. Button Styling */
-.btn-primary-custom {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white fzont-bold py-2 px-4 rounded transition duration-300 transform hover:scale-105;
+.feature-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* 4. Input Styling (Untuk Form Breeze) */
-.input-custom {
-    @apply w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm;
-    /* Tambahkan style modern jika diperlukan */
+.feature-item i {
+    font-size: 3em;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.feature-item h3 {
+    font-size: 1.4em;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.feature-item p {
+    font-size: 0.95em;
+    color: var(--secondary-color);
+}
+
+.feature-item-link {
+    text-decoration: none; /* Hapus garis bawah */
+    color: inherit; /* Warisi warna teks dari parent */
+}
+
+.feature-item {
+    /* ... styling sebelumnya ... */
+    cursor: pointer; /* Tambahkan cursor pointer agar terlihat bisa di klik */
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* === 4. FOOTER === */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--text-color);
+    color: var(--white-color);
+    font-size: 0.9em;
+}
+
+/* === Responsif (Mobile) === */
+@media (max-width: 768px) {
+    /* Navbar */
+    #navbar {
+        padding: 15px 20px;
+    }
+
+    .nav-links {
+        display: none; /* Sembunyikan navigasi di mobile secara default */
+        flex-direction: column;
+        position: absolute;
+        top: 60px; /* Di bawah navbar */
+        left: 0;
+        width: 100%;
+        background-color: var(--white-color);
+        box-shadow: var(--shadow-light);
+        padding: 20px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .nav-links a {
+        margin: 10px 0;
+        text-align: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .nav-links a:last-child {
+        border-bottom: none;
+    }
+
+    .nav-links.active {
+        display: flex; /* Tampilkan saat diaktifkan JS */
+    }
+    
+    .menu-toggle {
+        display: block; /* Tampilkan toggle di mobile */
+    }
+
+    /* Hero */
+    #hero-section {
+        padding: 80px 15px;
+        height: auto;
+    }
+
+    .hero-content h1 {
+        font-size: 2em;
+    }
+
+    .hero-content p {
+        font-size: 1em;
+    }
+
+    .hero-content .btn-cta, .hero-content .btn-secondary {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+    }
+
+        /* === POLI LIST STYLING === */
+    .poli-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+
+    .poli-card {
+        background-color: var(--white-color);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-top: 5px solid var(--primary-color);
+    }
+
+    .poli-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .poli-icon {
+        margin-bottom: 20px;
+    }
+
+    .poli-icon i {
+        font-size: 3.5em;
+        color: var(--primary-color);
+    }
+
+    .poli-icon img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .poli-name {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+    }
+
+    .poli-description {
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+        font-size: 0.95em;
+        min-height: 40px; /* Jaga agar tinggi kartu konsisten */
+    }
+
+    .btn-detail {
+        display: inline-block;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .btn-detail:hover {
+        color: var(--primary-dark);
+    }
+
+    .btn-detail i {
+        margin-left: 5px;
+        font-size: 0.9em;
+    }
+
+        /* === DOCTOR LIST STYLING === */
+    .filter-form {
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .filter-form select {
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        font-size: 1em;
+        min-width: 250px;
+        cursor: pointer;
+    }
+
+    .doctor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+    }
+
+    .doctor-card {
+        background-color: var(--white-color);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    .doctor-photo {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 20px auto;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .doctor-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .doctor-photo i {
+        font-size: 3em;
+        color: var(--primary-color);
+    }
+
+    .doctor-name {
+        font-size: 1.6em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: var(--primary-dark);
+    }
+
+    .doctor-poli {
+        font-size: 0.9em;
+        color: var(--secondary-color);
+        margin-bottom: 15px;
+    }
+
+    .doctor-specialty {
+        font-size: 1em;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+    }
+
+    .schedule-details {
+        text-align: left;
+        background-color: #f7f9fc;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .schedule-details h3 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+    }
+
+    .schedule-details ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .schedule-details li {
+        font-size: 0.95em;
+        line-height: 1.6;
+        border-bottom: 1px dashed #e0e0e0;
+        padding: 5px 0;
+    }
+
+    .schedule-details li:last-child {
+        border-bottom: none;
+    }
+
+    .btn-primary-small {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 8px 18px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.95em;
+        font-weight: 600;
+        transition: background-color 0.3s;
+    }
+
+    .btn-primary-small:hover {
+        background-color: var(--primary-dark);
+    }
+
+        /* === AUTHENTICATION STYLING (Login/Register) === */
+    .auth-body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #e0f2f7, var(--primary-color));
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 420px;
+        padding: 20px;
+    }
+
+    .auth-card {
+        background-color: var(--white-color);
+        padding: 35px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-title {
+        font-size: 2em;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        color: var(--secondary-color);
+        margin-bottom: 30px;
+        font-size: 0.95em;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-color);
+    }
+
+    .form-group label i {
+        margin-right: 8px;
+        color: var(--primary-color);
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    .form-group-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9em;
+        margin-bottom: 20px;
+    }
+
+    .btn-auth-primary {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary-color);
+        color: var(--white-color);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1.1em;
+        transition: background-color 0.3s;
+    }
+
+    .btn-auth-primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 15px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .auth-footer a {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .btn-guest {
+        display: inline-block;
+        margin-top: 15px;
+        color: var(--secondary-color);
+        font-size: 0.9em;
+        transition: color 0.3s;
+    }
+
+    .btn-guest:hover {
+        color: var(--primary-dark);
+    }
 }

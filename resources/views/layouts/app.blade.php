@@ -13,20 +13,28 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('home') }}" class="text-2xl font-bold text-blue-600">
-                        <i class="fas fa-hospital"></i> Hospital System
+                    <a href="{{ route('guest.home') }}" class="text-2xl font-bold text-blue-600">                        <i class="fas fa-hospital"></i> Hospital System
                     </a>
                 </div>
 
                 <div class="flex items-center space-x-4">
                     @guest
-                        <a href="{{ route('public.polis') }}" class="text-gray-700 hover:text-blue-600">Poli</a>
-                        <a href="{{ route('public.dokters') }}" class="text-gray-700 hover:text-blue-600">Dokter</a>
+                        <a href="{{ route('guest.poli.index') }}" class="text-gray-700 hover:text-blue-600">Poli</a>
+                        <a href="{{ route('guest.doctor.index') }}" class="text-gray-700 hover:text-blue-600">Dokter</a>
                         <a href="{{ route('login') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Login</a>
                         <a href="{{ route('register') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Register</a>
                     @else
-                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-blue-600">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        <a href="
+                        @if (auth()->user()->role == 'admin')
+                            {{ route('admin.dashboard') }}
+                        @elseif (auth()->user()->role == 'dokter')
+                            {{ route('doctor.dashboard') }}
+                        @elseif (auth()->user()->role == 'pasien')
+                            {{ route('patient.dashboard') }}
+                        @else
+                            / 
+                        @endif
+                        " class="text-gray-700 hover:text-blue-600">                            <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                         <span class="text-gray-700">{{ auth()->user()->username }}</span>
                         <form action="{{ route('logout') }}" method="POST" class="inline">

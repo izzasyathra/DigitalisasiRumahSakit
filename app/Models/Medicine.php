@@ -9,23 +9,14 @@ class Medicine extends Model
 {
     use HasFactory;
 
+    // Pastikan fillable menggunakan nama kolom BAHASA INGGRIS
     protected $fillable = [
         'nama',
         'deskripsi',
         'tipe',
         'stok',
+        'harga', // <--- TAMBAHKAN INI
         'gambar',
     ];
-
-    // Relationships
-    public function prescriptions()
-    {
-        return $this->hasMany(Prescription::class, 'medicine_id');
-    }
-
-    // Helper methods
-    public function isAvailable()
-    {
-        return $this->stok > 0;
-    }
+       
 }

@@ -7,33 +7,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
-    protected $fillable = [
-        'pasien_id',
-        'dokter_id',
-        'poli_id',
-        'schedule_id',
-        'tanggal_booking',
-        'keluhan',
-        'status',
-    ];
-        public function pasien()
+    use HasFactory;
+
+    protected $guarded = [];
+
+    /**
+     * Relasi ke Pasien (User).
+     * PENTING: Nama fungsi ini harus 'patient' karena Controller memanggil with('patient').
+     */
+    public function patient()
     {
-        return $this->belongsTo(User::class, 'pasien_id');
+        // 'patient_id' adalah nama kolom foreign key di tabel appointments
+        return $this->belongsTo(User::class, 'patient_id');
     }
 
-    public function dokter()
+    /**
+     * Relasi ke User (Opsional/Alias)
+     * Jika ada kode lain yang memanggil ->user, biarkan ini ada.
+     */
+    public function user()
     {
-        return $this->belongsTo(User::class, 'dokter_id');
+        return $this->belongsTo(User::class, 'patient_id');
     }
 
-    public function poli()
-    {
-        return $this->belongsTo(Poli::class, 'poli_id');
-    }
-
+    /**
+     * Relasi ke Jadwal (Schedule).
+     */
     public function schedule()
     {
         return $this->belongsTo(Schedule::class, 'schedule_id');
     }
-
 }

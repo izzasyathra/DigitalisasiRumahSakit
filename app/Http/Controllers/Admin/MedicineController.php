@@ -5,129 +5,90 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Medicine;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class MedicineController extends Controller
 {
-    public function index(Request $request)
+    // 1. Tampilkan Daftar Obat
+    public function index()
     {
-        $query = Medicine::query();
-
-        // Filter by availability
-        if ($request->has('available') && $request->available != '') {
-            if ($request->available == 'true') {
-                $query->where('stok', '>', 0);
-            } else {
-                $query->where('stok', '<=', 0);
-            }
-        }
-
-        // Search by name
-        if ($request->has('search') && $request->search != '') {
-            $query->where('nama', 'like', '%' . $request->search . '%');
-        }
-
-        // Filter by type
-        if ($request->has('tipe') && $request->tipe != '') {
-            $query->where('tipe', $request->tipe);
-        }
-
-        $medicines = $query->latest()->paginate(15);
-
+        $medicines = Medicine::paginate(10);
         return view('admin.medicines.index', compact('medicines'));
     }
 
+    // 2. Tampilkan Form Tambah
     public function create()
     {
         return view('admin.medicines.create');
     }
 
+    // 3. Simpan Obat Baru (STORE)
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string',
-            'deskripsi' => 'nullable|string',
-            'tipe' => 'required|in:keras,biasa',
-            'stok' => 'required|integer|min:0',
-            'gambar' => 'nullable|image|max:2048',
+            'name'  => 'required|unique:medicines,nama',
+            'type'  => 'required',
+            'stock' => 'required|integer',
+            'price' => 'required|numeric', // Validasi Harga
         ]);
 
-        $data = [
-            'nama' => $request->nama,
-            'deskripsi' => $request->deskripsi,
-            'tipe' => $request->tipe,
-            'stok' => $request->stok,
-        ];
+        Medicine::create([
+            'nama'      => $request->name,
+            'deskripsi' => $request->description,
+            'tipe'      => $request->type, 
+            'stok'      => $request->stock,
+            'harga'     => $request->price, // Simpan Harga
+        ]);
 
-        if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('medicines', 'public');
-            $data['gambar'] = $path;
-        }
-
-        Medicine::create($data);
-
-        return redirect()->route('admin.medicines.index')
-            ->with('success', 'Obat berhasil dibuat');
+        return redirect()->route('admin.medicines.index')->with('success', 'Obat berhasil ditambahkan!');
     }
 
-    public function show($id)
-    {
-        $medicine = Medicine::findOrFail($id);
-        return view('admin.medicines.show', compact('medicine'));
-    }
-
+    // 4. Tampilkan Form Edit (INI YANG TADI ERROR/HILANG)
     public function edit($id)
     {
-        $medicine = Medicine::findOrFail($id);
-        return view('admin.medicines.edit', compact('medicine'));
+        // Cari obat berdasarkan ID
+        $medicine = Medicine::find($id);
+        
+        // Pilihan untuk dropdown (pastikan Value sama dengan yang di database)
+        $types = ['Tablet', 'Sirup', 'Kapsul', 'Salep', 'Suntik', 'Lainnya'];
+
+        return view('admin.medicines.edit', compact('medicine', 'types'));
     }
 
+    // 5. Update Obat (UPDATE)
     public function update(Request $request, $id)
     {
-        $medicine = Medicine::findOrFail($id);
+        $medicine = Medicine::find($id);
+
+        if (!$medicine) {
+            return redirect()->back()->with('error', 'Data obat tidak ditemukan!');
+        }
 
         $request->validate([
-            'nama' => 'required|string',
-            'deskripsi' => 'nullable|string',
-            'tipe' => 'required|in:keras,biasa',
-            'stok' => 'required|integer|min:0',
-            'gambar' => 'nullable|image|max:2048',
+            'name'  => 'required',
+            'type'  => 'required',
+            'stock' => 'required|numeric',
+            'price' => 'required|numeric', // Validasi Harga
         ]);
 
-        $data = [
-            'nama' => $request->nama,
-            'deskripsi' => $request->deskripsi,
-            'tipe' => $request->tipe,
-            'stok' => $request->stok,
-        ];
+        // Update Data
+        $medicine->nama      = $request->name;
+        $medicine->tipe      = $request->type;
+        $medicine->stok      = $request->stock;
+        $medicine->harga     = $request->price; // Update Harga
+        $medicine->deskripsi = $request->description;
+        
+        $medicine->save();
 
-        if ($request->hasFile('gambar')) {
-            // Delete old image
-            if ($medicine->gambar) {
-                Storage::disk('public')->delete($medicine->gambar);
-            }
-            $path = $request->file('gambar')->store('medicines', 'public');
-            $data['gambar'] = $path;
-        }
-
-        $medicine->update($data);
-
-        return redirect()->route('admin.medicines.index')
-            ->with('success', 'Obat berhasil diupdate');
+        return redirect()->route('admin.medicines.index')->with('success', 'Berhasil update obat!');
     }
-
+    
+    // 6. Hapus Obat
     public function destroy($id)
     {
-        $medicine = Medicine::findOrFail($id);
-        
-        // Delete image if exists
-        if ($medicine->gambar) {
-            Storage::disk('public')->delete($medicine->gambar);
+        $medicine = Medicine::find($id);
+        if($medicine){
+            $medicine->delete();
         }
-        
-        $medicine->delete();
-
-        return redirect()->route('admin.medicines.index')
-            ->with('success', 'Obat berhasil dihapus');
+        return redirect()->route('admin.medicines.index')->with('success', 'Obat berhasil dihapus!');
     }
 }

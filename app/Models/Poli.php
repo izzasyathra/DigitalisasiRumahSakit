@@ -9,27 +9,12 @@ class Poli extends Model
 {
     use HasFactory;
 
+    protected $table = 'polis';
+
+    // TAMBAHKAN INI AGAR BISA DISIMPAN (MASS ASSIGNMENT)
+    // Sesuaikan 'name' dan 'description' dengan nama kolom asli di database kamu!
     protected $fillable = [
-        'name',
-        'description',
-        'icon',
+        'name', 
+        'description', // Atau 'deskripsi' jika memang itu namanya (tapi tadi error kan?)
     ];
-
-    /**
-     * Relasi ke User (Dokter)
-     * Satu Poli memiliki banyak Dokter
-     */
-    public function dokters()
-    {
-        return $this->hasMany(User::class, 'poli_id')
-                    ->where('role', 'dokter');
-    }
-
-    /**
-     * Get jumlah dokter di poli ini
-     */
-    public function dokters_count()
-    {
-        return $this->dokters()->count();
-    }
 }
